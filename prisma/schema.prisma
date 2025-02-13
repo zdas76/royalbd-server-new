@@ -1,0 +1,120 @@
+generator client {
+  provider        = "prisma-client-js"
+  binaryTargets   = ["native", "debian-openssl-1.1.x"]
+  previewFeatures = ["relationJoins"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 Int        @id @unique @default(autoincrement())
+  userName           String     @unique @db.VarChar(15)
+  email              String     @unique @db.VarChar(30)
+  password           String
+  status             UserStatus @default(ACTIVE)
+  role               UserRole   @default(USER)
+  needPasswordChange Boolean    @default(true)
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+
+  employee Employee?
+  admin    Admin?
+
+  @@map("users")
+}
+
+model Employee {
+  id           Int    @id @unique @default(autoincrement())
+  name         String @db.VarChar(50)
+  fatherName   String @db.VarChar(50)
+  motherName   String @db.VarChar(50)
+  workingPlase String
+  photo        String
+  address      String
+  email        String @unique
+  mobile       String @db.VarChar(14)
+
+  user User @relation(fields: [email], references: [email])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("employees")
+}
+
+model Admin {
+  id         Int    @id @unique @default(autoincrement())
+  name       String @db.VarChar(50)
+  fatherName String @db.VarChar(50)
+  motherName String @db.VarChar(50)
+  photo      String
+  address    String @db.VarChar(255)
+  email      String @unique
+  mobile     String @db.VarChar(14)
+
+  user User @relation(fields: [email], references: [email])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admins")
+}
+
+model Category {
+  id           Int           @id @unique @default(autoincrement())
+  categoryName String        @unique @db.VarChar(200)
+  SubCategory  SubCategory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("categoris")
+}
+
+model SubCategory {
+  id              Int    @id @unique @default(autoincrement())
+  subCategoryName String @unique @db.VarChar(200)
+  categorryId     Int
+
+  category Category @relation(fields: [categorryId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("sub_categoris")
+}
+
+model AccountMainPiller {
+  id           Int            @id @unique @default(autoincrement())
+  pillerName   String
+  pillerId     String         @unique @db.VarChar(2)
+  AccountsItem AccountsItem[]
+}
+
+model AccountsItem {
+  id                  Int               @id @default(autoincrement())
+  accountsItemName    String
+  accountsPiler       AccountMainPiller @relation(fields: [accountMainPillerId], references: [id])
+  accountMainPillerId Int
+  accountsItemId      String            @db.VarChar(4)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("account_items")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  USER
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCK
+  DELETED
+}
