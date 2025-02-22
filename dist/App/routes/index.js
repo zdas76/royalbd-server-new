@@ -26,6 +26,10 @@ const moduleRoutes = [
         path: "/sub-category",
         route: subCategory_route_1.SubCategoryRouter,
     },
+    {
+        path: "/account_pillers",
+        route: subCategory_route_1.SubCategoryRouter,
+    },
 ];
 moduleRoutes.forEach((route) => router.use(route.path, route.route));
 exports.default = router;
