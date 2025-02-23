@@ -9,7 +9,7 @@ const auth_controllers_1 = require("./auth.controllers");
 const client_1 = require("@prisma/client");
 const auth_1 = __importDefault(require("../../middlewares/auth"));
 const router = express_1.default.Router();
-router.post('/login', auth_controllers_1.AuthControllers.loginUser);
+router.post("/login", auth_controllers_1.AuthControllers.loginUser);
 router.post("/refresh-token", auth_controllers_1.AuthControllers.refreshToken);
 router.post("/change-password", (0, auth_1.default)(client_1.UserRole.SUPER_ADMIN, client_1.UserRole.ADMIN), auth_controllers_1.AuthControllers.changePassword);
 router.post("/forgot-password", auth_controllers_1.AuthControllers.forgotPassword);

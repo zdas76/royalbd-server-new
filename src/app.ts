@@ -9,8 +9,8 @@ const app: Application = express();
 
 app.use(
   cors({
-    origin: "*",
-    optionsSuccessStatus: 200,
+    origin: ["https://server.royalbdgroup.com", "http://localhost:5173"],
+    credentials: true,
   })
 );
 app.use(cookieParser());

@@ -57,26 +57,29 @@ const emailSender_1 = __importDefault(require("./emailSender"));
 const loginUser = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
     const userData = yield prisma_1.default.user.findFirst({
         where: {
-            email: payLoad.email,
-            status: client_1.UserStatus.ACTIVE
-        }
+            userName: payLoad.userName,
+            status: client_1.UserStatus.ACTIVE,
+        },
     });
-    const isCurrentPasword = yield bcrypt.compare(payLoad.password, userData.password);
+    if (!userData) {
+        throw new Error("User name or password not found");
+    }
+    const isCurrentPasword = yield bcrypt.compare(payLoad.password, userData === null || userData === void 0 ? void 0 : userData.password);
     if (!isCurrentPasword) {
         throw new Error("Password incorrect!");
     }
     const accessToken = jwtHelpers_1.jwtHelpers.generateToken({
-        email: userData === null || userData === void 0 ? void 0 : userData.email,
-        role: userData === null || userData === void 0 ? void 0 : userData.role
+        email: userData === null || userData === void 0 ? void 0 : userData.userName,
+        role: userData === null || userData === void 0 ? void 0 : userData.role,
     }, config_1.default.jwt.jwt_secret, config_1.default.jwt.expires_in);
     const refreshToken = jwtHelpers_1.jwtHelpers.generateToken({
-        email: userData === null || userData === void 0 ? void 0 : userData.email,
-        role: userData === null || userData === void 0 ? void 0 : userData.role
+        email: userData === null || userData === void 0 ? void 0 : userData.userName,
+        role: userData === null || userData === void 0 ? void 0 : userData.role,
     }, config_1.default.jwt.refresh_token_secret, config_1.default.jwt.refresh_token_expires_in);
     return {
         accessToken,
         refreshToken,
-        needPasswordChange: userData === null || userData === void 0 ? void 0 : userData.needPasswordChange
+        needPasswordChange: userData === null || userData === void 0 ? void 0 : userData.needPasswordChange,
     };
 });
 const refreshToken = (token) => __awaiter(void 0, void 0, void 0, function* () {
@@ -146,8 +149,8 @@ const resetPassword = (token, payLoad) => __awaiter(void 0, void 0, void 0, func
     const userData = yield prisma_1.default.user.findUniqueOrThrow({
         where: {
             email: payLoad.email,
-            status: client_1.UserStatus.ACTIVE
-        }
+            status: client_1.UserStatus.ACTIVE,
+        },
     });
     const isValidToken = jwtHelpers_1.jwtHelpers.verifyToken(token, config_1.default.jwt.reset_pass_secret);
     if (!isValidToken) {
@@ -169,5 +172,5 @@ exports.AuthService = {
     refreshToken,
     forgotPassword,
     changePassword,
-    resetPassword
+    resetPassword,
 };
