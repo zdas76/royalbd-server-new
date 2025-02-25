@@ -69,10 +69,12 @@ const loginUser = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
         throw new Error("Password incorrect!");
     }
     const accessToken = jwtHelpers_1.jwtHelpers.generateToken({
+        userName: userData === null || userData === void 0 ? void 0 : userData.userName,
         email: userData === null || userData === void 0 ? void 0 : userData.userName,
         role: userData === null || userData === void 0 ? void 0 : userData.role,
     }, config_1.default.jwt.jwt_secret, config_1.default.jwt.expires_in);
     const refreshToken = jwtHelpers_1.jwtHelpers.generateToken({
+        userName: userData === null || userData === void 0 ? void 0 : userData.userName,
         email: userData === null || userData === void 0 ? void 0 : userData.userName,
         role: userData === null || userData === void 0 ? void 0 : userData.role,
     }, config_1.default.jwt.refresh_token_secret, config_1.default.jwt.refresh_token_expires_in);

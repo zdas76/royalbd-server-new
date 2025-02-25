@@ -31,6 +31,7 @@ const loginUser = async (payLoad: { userName: string; password: string }) => {
 
   const accessToken = jwtHelpers.generateToken(
     {
+      userName: userData?.userName,
       email: userData?.userName,
       role: userData?.role,
     },
@@ -40,6 +41,7 @@ const loginUser = async (payLoad: { userName: string; password: string }) => {
 
   const refreshToken = jwtHelpers.generateToken(
     {
+      userName: userData?.userName,
       email: userData?.userName,
       role: userData?.role,
     },
