@@ -55,9 +55,9 @@ const config_1 = __importDefault(require("../../../config"));
 const ApiError_1 = __importDefault(require("../../errors/ApiError"));
 const emailSender_1 = __importDefault(require("./emailSender"));
 const loginUser = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
-    const userData = yield prisma_1.default.user.findFirst({
+    const userData = yield prisma_1.default.employee.findFirst({
         where: {
-            userName: payLoad.userName,
+            email: payLoad.email,
             status: client_1.UserStatus.ACTIVE,
         },
     });
@@ -69,19 +69,20 @@ const loginUser = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
         throw new Error("Password incorrect!");
     }
     const accessToken = jwtHelpers_1.jwtHelpers.generateToken({
-        userName: userData === null || userData === void 0 ? void 0 : userData.userName,
-        email: userData === null || userData === void 0 ? void 0 : userData.userName,
+        email: userData === null || userData === void 0 ? void 0 : userData.email,
+        name: userData.name,
+        nid: userData.nid,
         role: userData === null || userData === void 0 ? void 0 : userData.role,
     }, config_1.default.jwt.jwt_secret, config_1.default.jwt.expires_in);
     const refreshToken = jwtHelpers_1.jwtHelpers.generateToken({
-        userName: userData === null || userData === void 0 ? void 0 : userData.userName,
-        email: userData === null || userData === void 0 ? void 0 : userData.userName,
+        email: userData === null || userData === void 0 ? void 0 : userData.email,
+        name: userData.name,
+        nid: userData.nid,
         role: userData === null || userData === void 0 ? void 0 : userData.role,
     }, config_1.default.jwt.refresh_token_secret, config_1.default.jwt.refresh_token_expires_in);
     return {
         accessToken,
         refreshToken,
-        needPasswordChange: userData === null || userData === void 0 ? void 0 : userData.needPasswordChange,
     };
 });
 const refreshToken = (token) => __awaiter(void 0, void 0, void 0, function* () {
@@ -92,20 +93,19 @@ const refreshToken = (token) => __awaiter(void 0, void 0, void 0, function* () {
     catch (error) {
         throw new ApiError_1.default(http_status_codes_1.default.UNAUTHORIZED, "Your are not Authorized");
     }
-    const checkUser = yield prisma_1.default.user.findUniqueOrThrow({
+    const checkUser = yield prisma_1.default.employee.findUniqueOrThrow({
         where: {
             email: userData.email,
             status: client_1.UserStatus.ACTIVE,
         },
     });
-    const accessToken = jwtHelpers_1.jwtHelpers.generateToken({ emil: checkUser.email, role: checkUser.role }, config_1.default.jwt.jwt_secret, config_1.default.jwt.expires_in);
+    const accessToken = jwtHelpers_1.jwtHelpers.generateToken({ email: checkUser.email, role: checkUser.role }, config_1.default.jwt.jwt_secret, config_1.default.jwt.expires_in);
     return {
         accessToken,
-        changePassword: checkUser.needPasswordChange,
     };
 });
 const changePassword = (user, data) => __awaiter(void 0, void 0, void 0, function* () {
-    const userData = yield prisma_1.default.user.findUniqueOrThrow({
+    const userData = yield prisma_1.default.employee.findUniqueOrThrow({
         where: {
             email: user.email,
         },
@@ -115,14 +115,13 @@ const changePassword = (user, data) => __awaiter(void 0, void 0, void 0, functio
         throw new ApiError_1.default(http_status_codes_1.default.UNAUTHORIZED, "Your are not Authorized");
     }
     const hassPassWord = yield bcrypt.hash(data.newPassword, 12);
-    yield prisma_1.default.user.update({
+    yield prisma_1.default.employee.update({
         where: {
             email: userData.email,
             status: client_1.UserStatus.ACTIVE,
         },
         data: {
             password: hassPassWord,
-            needPasswordChange: false,
         },
     });
     return {
@@ -130,7 +129,7 @@ const changePassword = (user, data) => __awaiter(void 0, void 0, void 0, functio
     };
 });
 const forgotPassword = (playLoad) => __awaiter(void 0, void 0, void 0, function* () {
-    const userData = yield prisma_1.default.user.findUniqueOrThrow({
+    const userData = yield prisma_1.default.employee.findUniqueOrThrow({
         where: {
             email: playLoad.email,
             status: client_1.UserStatus.ACTIVE,
@@ -148,7 +147,7 @@ const forgotPassword = (playLoad) => __awaiter(void 0, void 0, void 0, function*
     `);
 });
 const resetPassword = (token, payLoad) => __awaiter(void 0, void 0, void 0, function* () {
-    const userData = yield prisma_1.default.user.findUniqueOrThrow({
+    const userData = yield prisma_1.default.employee.findUniqueOrThrow({
         where: {
             email: payLoad.email,
             status: client_1.UserStatus.ACTIVE,
@@ -159,7 +158,7 @@ const resetPassword = (token, payLoad) => __awaiter(void 0, void 0, void 0, func
         throw new ApiError_1.default(http_status_codes_1.default.UNAUTHORIZED, "Your are not Authorized");
     }
     const hassPassWord = yield bcrypt.hash(payLoad.passWord, 12);
-    yield prisma_1.default.user.update({
+    yield prisma_1.default.employee.update({
         where: {
             email: userData.email,
             status: client_1.UserStatus.ACTIVE,

@@ -25,7 +25,7 @@ const createCategoryToDB = async (payLoad: Category) => {
 };
 
 const getCategory = async (): Promise<Category[]> => {
-  const result = await prisma.category.findMany();
+  const result = await prisma.category.findMany({});
 
   return result;
 };

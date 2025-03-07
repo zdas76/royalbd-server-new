@@ -26,6 +26,16 @@ const createPillers = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, 
         data: result,
     });
 }));
+const getPillers = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield Pillers_service_1.PillersService.getAllPillerItem();
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "Accounts Head retrived Successfuly",
+        data: result,
+    });
+}));
 exports.PillersControllers = {
     createPillers,
+    getPillers,
 };

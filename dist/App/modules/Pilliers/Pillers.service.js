@@ -15,11 +15,17 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PillersService = void 0;
 const prisma_1 = __importDefault(require("../../../shared/prisma"));
 const createPliersItemIntoDB = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(payLoad);
     const result = yield prisma_1.default.accountMainPiller.create({
         data: payLoad,
     });
     return result;
 });
+const getAllPillerItem = () => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield prisma_1.default.accountMainPiller.findMany();
+    return result;
+});
 exports.PillersService = {
     createPliersItemIntoDB,
+    getAllPillerItem,
 };

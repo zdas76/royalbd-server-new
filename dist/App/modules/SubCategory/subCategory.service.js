@@ -35,7 +35,11 @@ const createSubCategoryToDB = (payLoad) => __awaiter(void 0, void 0, void 0, fun
     return result;
 });
 const getSubCategory = () => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield prisma_1.default.subCategory.findMany();
+    const result = yield prisma_1.default.subCategory.findMany({
+        include: {
+            category: true,
+        },
+    });
     return result;
 });
 const subCategoryUpdate = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {

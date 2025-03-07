@@ -3,7 +3,8 @@ import prisma from "../../../shared/prisma";
 
 const createPliersItemIntoDB = async (
   payLoad: AccountMainPiller
-): Promise<AccountMainPiller[] | AccountMainPiller> => {
+): Promise<AccountMainPiller> => {
+  console.log(payLoad);
   const result = await prisma.accountMainPiller.create({
     data: payLoad,
   });
@@ -11,6 +12,13 @@ const createPliersItemIntoDB = async (
   return result;
 };
 
+const getAllPillerItem = async () => {
+  const result = await prisma.accountMainPiller.findMany();
+
+  return result;
+};
+
 export const PillersService = {
   createPliersItemIntoDB,
+  getAllPillerItem,
 };

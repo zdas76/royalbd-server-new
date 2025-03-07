@@ -81,7 +81,7 @@ const creatAdminToDB = (req) => __awaiter(void 0, void 0, void 0, function* () {
                 motherName: req.body.admin.motherName,
                 address: req.body.admin.address,
                 mobile: req.body.admin.mobile,
-                photo: req.body.admin.photo
+                photo: req.body.admin.photo,
             },
         });
         return createAdmin;
@@ -150,5 +150,5 @@ const getAllUserFromBD = (params, paginat) => __awaiter(void 0, void 0, void 0, 
 exports.UserService = {
     creatEmployeeToDB,
     creatAdminToDB,
-    getAllUserFromBD
+    getAllUserFromBD,
 };

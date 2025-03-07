@@ -33,7 +33,7 @@ const createCategoryToDB = (payLoad) => __awaiter(void 0, void 0, void 0, functi
     return result;
 });
 const getCategory = () => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield prisma_1.default.category.findMany();
+    const result = yield prisma_1.default.category.findMany({});
     return result;
 });
 const categoryUpdate = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {

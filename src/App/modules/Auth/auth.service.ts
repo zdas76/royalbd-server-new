@@ -8,10 +8,10 @@ import config from "../../../config";
 import ApiError from "../../errors/ApiError";
 import emailSender from "./emailSender";
 
-const loginUser = async (payLoad: { userName: string; password: string }) => {
-  const userData = await prisma.user.findFirst({
+const loginUser = async (payLoad: { email: string; password: string }) => {
+  const userData = await prisma.employee.findFirst({
     where: {
-      userName: payLoad.userName,
+      email: payLoad.email,
       status: UserStatus.ACTIVE,
     },
   });
@@ -31,8 +31,9 @@ const loginUser = async (payLoad: { userName: string; password: string }) => {
 
   const accessToken = jwtHelpers.generateToken(
     {
-      userName: userData?.userName,
-      email: userData?.userName,
+      email: userData?.email,
+      name: userData.name,
+      nid: userData.nid,
       role: userData?.role,
     },
     config.jwt.jwt_secret as Secret,
@@ -41,8 +42,9 @@ const loginUser = async (payLoad: { userName: string; password: string }) => {
 
   const refreshToken = jwtHelpers.generateToken(
     {
-      userName: userData?.userName,
-      email: userData?.userName,
+      email: userData?.email,
+      name: userData.name,
+      nid: userData.nid,
       role: userData?.role,
     },
     config.jwt.refresh_token_secret as Secret,
@@ -52,7 +54,6 @@ const loginUser = async (payLoad: { userName: string; password: string }) => {
   return {
     accessToken,
     refreshToken,
-    needPasswordChange: userData?.needPasswordChange,
   };
 };
 
@@ -67,7 +68,7 @@ const refreshToken = async (token: string) => {
     throw new ApiError(StatusCodes.UNAUTHORIZED, "Your are not Authorized");
   }
 
-  const checkUser = await prisma.user.findUniqueOrThrow({
+  const checkUser = await prisma.employee.findUniqueOrThrow({
     where: {
       email: userData.email,
       status: UserStatus.ACTIVE,
@@ -75,14 +76,13 @@ const refreshToken = async (token: string) => {
   });
 
   const accessToken = jwtHelpers.generateToken(
-    { emil: checkUser.email, role: checkUser.role },
+    { email: checkUser.email, role: checkUser.role },
     config.jwt.jwt_secret as Secret,
     config.jwt.expires_in as string
   );
 
   return {
     accessToken,
-    changePassword: checkUser.needPasswordChange,
   };
 };
 
@@ -90,7 +90,7 @@ const changePassword = async (
   user: { email: string; role: string; iat: number; exp: number },
   data: { olePassword: string; newPassword: string }
 ) => {
-  const userData = await prisma.user.findUniqueOrThrow({
+  const userData = await prisma.employee.findUniqueOrThrow({
     where: {
       email: user.email,
     },
@@ -105,14 +105,13 @@ const changePassword = async (
   }
   const hassPassWord: string = await bcrypt.hash(data.newPassword, 12);
 
-  await prisma.user.update({
+  await prisma.employee.update({
     where: {
       email: userData.email,
       status: UserStatus.ACTIVE,
     },
     data: {
       password: hassPassWord,
-      needPasswordChange: false,
     },
   });
 
@@ -122,7 +121,7 @@ const changePassword = async (
 };
 
 const forgotPassword = async (playLoad: { email: string }) => {
-  const userData = await prisma.user.findUniqueOrThrow({
+  const userData = await prisma.employee.findUniqueOrThrow({
     where: {
       email: playLoad.email,
       status: UserStatus.ACTIVE,
@@ -153,7 +152,7 @@ const resetPassword = async (
   token: string,
   payLoad: { email: string; passWord: string }
 ) => {
-  const userData = await prisma.user.findUniqueOrThrow({
+  const userData = await prisma.employee.findUniqueOrThrow({
     where: {
       email: payLoad.email,
       status: UserStatus.ACTIVE,
@@ -170,7 +169,7 @@ const resetPassword = async (
   }
   const hassPassWord: string = await bcrypt.hash(payLoad.passWord, 12);
 
-  await prisma.user.update({
+  await prisma.employee.update({
     where: {
       email: userData.email,
       status: UserStatus.ACTIVE,

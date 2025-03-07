@@ -28,7 +28,11 @@ const createSubCategoryToDB = async (payLoad: SubCategory) => {
 };
 
 const getSubCategory = async (): Promise<SubCategory[] | SubCategory> => {
-  const result = await prisma.subCategory.findMany();
+  const result = await prisma.subCategory.findMany({
+    include: {
+      category: true,
+    },
+  });
 
   return result;
 };

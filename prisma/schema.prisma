@@ -9,35 +9,19 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id                 Int        @id @unique @default(autoincrement())
-  userName           String     @unique @db.VarChar(15)
-  email              String     @unique @db.VarChar(30)
-  password           String
-  status             UserStatus @default(ACTIVE)
-  role               UserRole   @default(USER)
-  needPasswordChange Boolean    @default(true)
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
-
-  employee Employee?
-  admin    Admin?
-
-  @@map("users")
-}
-
 model Employee {
-  id           Int    @id @unique @default(autoincrement())
-  name         String @db.VarChar(50)
-  fatherName   String @db.VarChar(50)
-  motherName   String @db.VarChar(50)
-  workingPlase String
-  photo        String
+  id           Int        @id @unique @default(autoincrement())
+  email        String     @unique @db.VarChar(30)
+  password     String
+  name         String     @db.VarChar(50)
+  nid          String?    @db.VarChar(20)
+  dob          DateTime   @db.Date()
+  workingPlase String?
+  photo        String?
   address      String
-  email        String @unique
-  mobile       String @db.VarChar(14)
-
-  user User @relation(fields: [email], references: [email])
+  mobile       String     @db.VarChar(14)
+  role         UserRole   @default(EMPLOYEE)
+  status       UserStatus @default(ACTIVE)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -45,22 +29,18 @@ model Employee {
   @@map("employees")
 }
 
-model Admin {
-  id         Int    @id @unique @default(autoincrement())
-  name       String @db.VarChar(50)
-  fatherName String @db.VarChar(50)
-  motherName String @db.VarChar(50)
-  photo      String
-  address    String @db.VarChar(255)
-  email      String @unique
-  mobile     String @db.VarChar(14)
-
-  user User @relation(fields: [email], references: [email])
+model Party {
+  id        Int       @id @default(autoincrement())
+  name      String    @db.VarChar(50)
+  contactNo String    @db.VarChar(15)
+  address   String    @db.VarChar(200)
+  partyType PartyType
+  isDeleted Boolean   @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@map("admins")
+  @@map("parties")
 }
 
 model Category {
@@ -92,6 +72,11 @@ model AccountMainPiller {
   pillerName   String
   pillerId     String         @unique @db.VarChar(2)
   AccountsItem AccountsItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("account_pillers")
 }
 
 model AccountsItem {
@@ -110,11 +95,16 @@ model AccountsItem {
 enum UserRole {
   SUPER_ADMIN
   ADMIN
-  USER
+  EMPLOYEE
 }
 
 enum UserStatus {
   ACTIVE
   BLOCK
   DELETED
+}
+
+enum PartyType {
+  VENDOR
+  CUSTOMER
 }

@@ -14,6 +14,17 @@ const createPillers = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getPillers = catchAsync(async (req: Request, res: Response) => {
+  const result = await PillersService.getAllPillerItem();
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Accounts Head retrived Successfuly",
+    data: result,
+  });
+});
+
 export const PillersControllers = {
   createPillers,
+  getPillers,
 };
