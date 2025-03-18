@@ -5,8 +5,8 @@ import prisma from "../../../shared/prisma";
 import * as bcrypt from "bcryptjs";
 import { jwtHelpers } from "../../../helpars/jwtHelpers";
 import config from "../../../config";
-import ApiError from "../../errors/ApiError";
 import emailSender from "./emailSender";
+import AppError from "../../errors/AppError";
 
 const loginUser = async (payLoad: { email: string; password: string }) => {
   const userData = await prisma.employee.findFirst({
@@ -31,6 +31,7 @@ const loginUser = async (payLoad: { email: string; password: string }) => {
 
   const accessToken = jwtHelpers.generateToken(
     {
+      id: userData.id,
       email: userData?.email,
       name: userData.name,
       nid: userData.nid,
@@ -42,6 +43,7 @@ const loginUser = async (payLoad: { email: string; password: string }) => {
 
   const refreshToken = jwtHelpers.generateToken(
     {
+      id: userData.id,
       email: userData?.email,
       name: userData.name,
       nid: userData.nid,
@@ -65,7 +67,7 @@ const refreshToken = async (token: string) => {
       config.jwt.refresh_token_secret as Secret
     );
   } catch (error) {
-    throw new ApiError(StatusCodes.UNAUTHORIZED, "Your are not Authorized");
+    throw new AppError(StatusCodes.UNAUTHORIZED, "Your are not Authorized");
   }
 
   const checkUser = await prisma.employee.findUniqueOrThrow({
@@ -76,7 +78,13 @@ const refreshToken = async (token: string) => {
   });
 
   const accessToken = jwtHelpers.generateToken(
-    { email: checkUser.email, role: checkUser.role },
+    {
+      id: userData.id,
+      email: userData?.email,
+      name: userData.name,
+      nid: userData.nid,
+      role: userData?.role,
+    },
     config.jwt.jwt_secret as Secret,
     config.jwt.expires_in as string
   );
@@ -101,9 +109,12 @@ const changePassword = async (
   );
 
   if (!isCorrectPassword) {
-    throw new ApiError(StatusCodes.UNAUTHORIZED, "Your are not Authorized");
+    throw new AppError(StatusCodes.UNAUTHORIZED, "Your are not Authorized");
   }
-  const hassPassWord: string = await bcrypt.hash(data.newPassword, 12);
+  const hassPassWord: string = await bcrypt.hash(
+    data.newPassword,
+    parseInt(config.hash_round as string)
+  );
 
   await prisma.employee.update({
     where: {
@@ -129,7 +140,13 @@ const forgotPassword = async (playLoad: { email: string }) => {
   });
 
   const resetPasswordToken = jwtHelpers.generateToken(
-    { email: userData.email, role: userData.role },
+    {
+      id: userData.id,
+      email: userData?.email,
+      name: userData.name,
+      nid: userData.nid,
+      role: userData?.role,
+    },
     config.jwt.reset_pass_secret as Secret,
     config.jwt.reset_pass_token_expires_in as string
   );
@@ -165,9 +182,12 @@ const resetPassword = async (
   );
 
   if (!isValidToken) {
-    throw new ApiError(StatusCodes.UNAUTHORIZED, "Your are not Authorized");
+    throw new AppError(StatusCodes.UNAUTHORIZED, "Your are not Authorized");
   }
-  const hassPassWord: string = await bcrypt.hash(payLoad.passWord, 12);
+  const hassPassWord: string = await bcrypt.hash(
+    payLoad.passWord,
+    parseInt(config.hash_round as string)
+  );
 
   await prisma.employee.update({
     where: {

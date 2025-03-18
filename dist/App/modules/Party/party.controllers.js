@@ -40,7 +40,7 @@ const getAllParty = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
     });
 }));
 const getPartyById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const id = parseInt(req.body.id);
+    const id = parseInt(req.params.id);
     const result = yield party_service_1.PartyService.getPartyById(id);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
@@ -50,7 +50,7 @@ const getPartyById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, v
     });
 }));
 const updatePartyById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const id = parseInt(req.body.id);
+    const id = parseInt(req.params.id);
     const result = yield party_service_1.PartyService.updatePartyById(id, req.body);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
@@ -60,7 +60,7 @@ const updatePartyById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0
     });
 }));
 const deletePartyById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const id = parseInt(req.body.id);
+    const id = parseInt(req.params.id);
     const result = yield party_service_1.PartyService.deletePartyById(id);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,

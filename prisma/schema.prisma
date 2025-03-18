@@ -55,14 +55,14 @@ model Category {
 }
 
 model SubCategory {
-  id              Int    @id @unique @default(autoincrement())
-  subCategoryName String @unique @db.VarChar(200)
-  categorryId     Int
+  id              Int      @id @unique @default(autoincrement())
+  subCategoryName String   @unique @db.VarChar(200)
+  categoryId      Int
+  category        Category @relation(fields: [categoryId], references: [id])
 
-  category Category @relation(fields: [categorryId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  Product   Product[]
 
   @@map("sub_categoris")
 }
@@ -82,14 +82,85 @@ model AccountMainPiller {
 model AccountsItem {
   id                  Int               @id @default(autoincrement())
   accountsItemName    String
-  accountsPiler       AccountMainPiller @relation(fields: [accountMainPillerId], references: [id])
-  accountMainPillerId Int
+  accountsPiler       AccountMainPiller @relation(fields: [accountMainPillerId], references: [pillerId])
+  accountMainPillerId String            @db.VarChar(2)
   accountsItemId      String            @db.VarChar(4)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("account_items")
+}
+
+model Unit {
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(20)
+
+  createdAt DateTime @default(now())
+  updateAt  DateTime @updatedAt
+
+  @@map("unites")
+}
+
+model Product {
+  id            Int         @id @default(autoincrement())
+  name          String      @db.VarChar(100)
+  description   String      @db.VarChar(250)
+  subCategoryId Int
+  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
+  minPrice      Int?
+  color         String?
+  size          String?
+  isDeleted     Boolean     @default(false)
+  status        Status      @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updateAt  DateTime @updatedAt
+
+  @@map("products")
+}
+
+model RawMaterial {
+  id          Int     @id @default(autoincrement())
+  name        String  @db.VarChar(50)
+  description String? @db.VarChar(250)
+  isDeleted   Boolean @default(false)
+  status      Status  @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updateAt  DateTime @updatedAt
+
+  @@map("raw_materials")
+}
+
+model Inventory {
+  id            Int            @id @default(autoincrement())
+  name          String         @unique
+  type          ItemType
+  category      String?
+  supplier      String?
+  unitePrice    Decimal        @default(0.00)
+  quantity      Decimal        @default(0.00)
+  totalCost     Decimal        @default(0.00)
+  closingStocks ClosingStock[] @relation("InventoryItemToClosingStock")
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@map("inventories")
+}
+
+model ClosingStock {
+  id              Int       @id @default(autoincrement())
+  inventoryItemId Int
+  date            DateTime  @default(now())
+  closingQuantity Int
+  closingPrice    Decimal
+  inventoryItem   Inventory @relation(fields: [inventoryItemId], references: [id], name: "InventoryItemToClosingStock")
+}
+
+enum ItemType {
+  PRODUCT
+  RAW_MATERIAL
 }
 
 enum UserRole {
@@ -102,6 +173,13 @@ enum UserStatus {
   ACTIVE
   BLOCK
   DELETED
+}
+
+enum Status {
+  ACTIVE
+  DELETED
+  PUSH
+  BLOCK
 }
 
 enum PartyType {

@@ -4,12 +4,13 @@ import router from "./App/routes";
 import { StatusCodes } from "http-status-codes";
 import express from "express";
 import cookieParser from "cookie-parser";
+import globalErrorHandler from "./App/middlewares/globalErrorHandler";
 
 const app: Application = express();
 
 app.use(
   cors({
-    origin: ["https://server.royalbdgroup.com", "http://localhost:5173"],
+    origin: ["https://royalbd-client.vercel.app/", "http://localhost:5173"],
     credentials: true,
   })
 );
@@ -25,7 +26,7 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use("/api/v1", router);
 
-// app.use(globalErrorHandler);
+app.use(globalErrorHandler);
 
 app.use((req: Request, res: Response, next: NextFunction) => {
   res.status(StatusCodes.NOT_FOUND).json({

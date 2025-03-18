@@ -55,9 +55,22 @@ const updateEmployeeById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const deleteEmployeeById = catchAsync(async (req: Request, res: Response) => {
+  const id = parseInt(req.params.id);
+  const result = await EmployeeService.deleteEmployeeById(id);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Employee deleted Successfully",
+    data: result,
+  });
+});
+
 export const EmployeeControllers = {
   getEmployee,
   getEmployeeById,
   updateEmployeeById,
   createEmployee,
+  deleteEmployeeById,
 };

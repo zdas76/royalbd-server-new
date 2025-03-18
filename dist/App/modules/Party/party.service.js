@@ -25,10 +25,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.PartyService = void 0;
 const prisma_1 = __importDefault(require("../../../shared/prisma"));
-const ApiError_1 = __importDefault(require("../../errors/ApiError"));
 const http_status_codes_1 = require("http-status-codes");
 const paginationHelpers_1 = require("../../../helpars/paginationHelpers");
 const party_constant_1 = require("./party.constant");
+const AppError_1 = __importDefault(require("../../errors/AppError"));
 const createParty = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const isExist = yield prisma_1.default.party.findFirst({
         where: {
@@ -39,7 +39,7 @@ const createParty = (payload) => __awaiter(void 0, void 0, void 0, function* () 
         },
     });
     if (isExist) {
-        throw new ApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "This User Already Exist");
+        throw new AppError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "This User Already Exist");
     }
     const result = yield prisma_1.default.party.create({
         data: payload,
@@ -95,14 +95,12 @@ const getPartyById = (id) => __awaiter(void 0, void 0, void 0, function* () {
 const updatePartyById = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
     const isExist = yield prisma_1.default.party.findFirst({
         where: {
-            name: payload.name,
-            contactNo: payload.contactNo,
-            partyType: payload.partyType,
+            id: id,
             isDeleted: false,
         },
     });
     if (!isExist) {
-        throw new ApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "No Party Found ");
+        throw new AppError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "No Party Found ");
     }
     const result = yield prisma_1.default.party.update({
         where: {
@@ -113,6 +111,7 @@ const updatePartyById = (id, payload) => __awaiter(void 0, void 0, void 0, funct
     return result;
 });
 const deletePartyById = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(id);
     const isExist = yield prisma_1.default.party.findFirst({
         where: {
             id: id,
@@ -120,7 +119,7 @@ const deletePartyById = (id) => __awaiter(void 0, void 0, void 0, function* () {
         },
     });
     if (!isExist) {
-        throw new ApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "No party found");
+        throw new AppError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "No party found");
     }
     const result = yield prisma_1.default.party.update({
         where: {

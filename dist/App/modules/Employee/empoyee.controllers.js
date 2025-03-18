@@ -59,9 +59,20 @@ const updateEmployeeById = (0, catchAsync_1.default)((req, res) => __awaiter(voi
         data: result,
     });
 }));
+const deleteEmployeeById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = parseInt(req.params.id);
+    const result = yield employee_service_1.EmployeeService.deleteEmployeeById(id);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "Employee deleted Successfully",
+        data: result,
+    });
+}));
 exports.EmployeeControllers = {
     getEmployee,
     getEmployeeById,
     updateEmployeeById,
     createEmployee,
+    deleteEmployeeById,
 };

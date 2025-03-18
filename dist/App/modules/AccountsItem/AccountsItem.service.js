@@ -14,17 +14,26 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AccountItemService = void 0;
 const prisma_1 = __importDefault(require("../../../shared/prisma"));
-const ApiError_1 = __importDefault(require("../../errors/ApiError"));
 const http_status_codes_1 = require("http-status-codes");
+const AppError_1 = __importDefault(require("../../errors/AppError"));
 const createAccountsItemtoDB = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(payLoad);
     const isExist = yield prisma_1.default.accountsItem.findFirst({
         where: {
             accountMainPillerId: payLoad.accountMainPillerId,
-            accountsItemName: payLoad.accountsItemId,
+            accountsItemId: payLoad.accountsItemId,
         },
     });
     if (isExist) {
-        throw new ApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "This item already exist");
+        throw new AppError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "This item already exist");
+    }
+    const checkPiller = yield prisma_1.default.accountMainPiller.findUnique({
+        where: {
+            pillerId: payLoad.accountMainPillerId,
+        },
+    });
+    if (!checkPiller) {
+        throw new AppError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "Accounts head not found");
     }
     const result = yield prisma_1.default.accountsItem.create({
         data: payLoad,
@@ -32,7 +41,10 @@ const createAccountsItemtoDB = (payLoad) => __awaiter(void 0, void 0, void 0, fu
     return result;
 });
 const getAccountsItemFromDB = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("first", payLoad);
+    const result = yield prisma_1.default.accountsItem.groupBy({
+        by: ["accountMainPillerId"],
+    });
+    return result;
 });
 const getAccountsItemByIdFromDB = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("first", payLoad);

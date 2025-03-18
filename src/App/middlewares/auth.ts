@@ -4,6 +4,7 @@ import { StatusCodes } from "http-status-codes";
 import { jwtHelpers } from "../../helpars/jwtHelpers";
 import config from "../../config";
 import { Secret } from "jsonwebtoken";
+import AppError from "../errors/AppError";
 
 const auth = (...roles: string[]) => {
   return async (
@@ -15,7 +16,7 @@ const auth = (...roles: string[]) => {
       const token = req.headers.authorization;
 
       if (!token) {
-        // new Error (StatusCodes.UNAUTHORIZED, "You are not authorize")
+        throw new AppError(StatusCodes.UNAUTHORIZED, "You are not authorize");
       }
 
       const verifiedUser = jwtHelpers.verifyToken(

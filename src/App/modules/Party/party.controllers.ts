@@ -32,7 +32,7 @@ const getAllParty = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getPartyById = catchAsync(async (req: Request, res: Response) => {
-  const id = parseInt(req.body.id);
+  const id = parseInt(req.params.id);
 
   const result = await PartyService.getPartyById(id);
 
@@ -45,7 +45,7 @@ const getPartyById = catchAsync(async (req: Request, res: Response) => {
 });
 
 const updatePartyById = catchAsync(async (req: Request, res: Response) => {
-  const id = parseInt(req.body.id);
+  const id = parseInt(req.params.id);
 
   const result = await PartyService.updatePartyById(id, req.body);
 
@@ -58,7 +58,7 @@ const updatePartyById = catchAsync(async (req: Request, res: Response) => {
 });
 
 const deletePartyById = catchAsync(async (req: Request, res: Response) => {
-  const id = parseInt(req.body.id);
+  const id = parseInt(req.params.id);
 
   const result = await PartyService.deletePartyById(id);
 

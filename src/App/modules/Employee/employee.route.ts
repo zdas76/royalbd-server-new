@@ -19,6 +19,16 @@ route.get("/", EmployeeControllers.getEmployee);
 
 route.get("/:id", EmployeeControllers.getEmployeeById);
 
-route.put("/:id", EmployeeControllers.updateEmployeeById);
+route.put(
+  "/:id",
+  upload.single("photo"),
+  (req: Request, res: Response, next: NextFunction) => {
+    req.body = userValidaton.updateEmployee.parse(JSON.parse(req.body.data));
+
+    return EmployeeControllers.updateEmployeeById(req, res, next);
+  }
+);
+
+route.delete("/:id", EmployeeControllers.deleteEmployeeById);
 
 export const EmployeeRoute = route;

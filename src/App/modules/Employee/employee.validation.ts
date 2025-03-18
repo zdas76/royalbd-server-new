@@ -13,6 +13,20 @@ const createEmployee = z.object({
   }),
 });
 
+const updateEmployee = z.object({
+  employee: z.object({
+    name: z.string({ required_error: "Name is required" }).optional(),
+    nid: z.string({ required_error: "NID number required" }).optional(),
+    dob: z.string({ required_error: "Father name is required" }).optional(),
+    workingPlase: z
+      .string({ required_error: "Father name is required" })
+      .optional(),
+    address: z.string({ required_error: "Father name is required" }).optional(),
+    mobile: z.string({ required_error: "Father name is required" }).optional(),
+  }),
+});
+
 export const userValidaton = {
   createEmployee,
+  updateEmployee,
 };

@@ -1,8 +1,8 @@
 import { Category, SubCategory } from "@prisma/client";
 import { Request, Response } from "express";
 import prisma from "../../../shared/prisma";
-import ApiError from "../../errors/ApiError";
 import { StatusCodes } from "http-status-codes";
+import AppError from "../../errors/AppError";
 
 const createSubCategoryToDB = async (payLoad: SubCategory) => {
   console.log(payLoad);
@@ -14,13 +14,13 @@ const createSubCategoryToDB = async (payLoad: SubCategory) => {
   });
 
   if (subCategory) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "This Name already used");
+    throw new AppError(StatusCodes.BAD_REQUEST, "This Name already used");
   }
 
   const result = await prisma.subCategory.create({
     data: {
       subCategoryName: payLoad.subCategoryName,
-      categorryId: payLoad.categorryId,
+      categoryId: payLoad.categoryId,
     },
   });
 
@@ -45,7 +45,7 @@ const subCategoryUpdate = async (payLoad: SubCategory) => {
   });
 
   if (!subCategory) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "This Name already used");
+    throw new AppError(StatusCodes.BAD_REQUEST, "This Name already used");
   }
 
   const result = await prisma.subCategory.update({
@@ -68,7 +68,7 @@ const getCategorybyId = async (payLoad: SubCategory) => {
   });
 
   if (!subCategory) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "This Name already used");
+    throw new AppError(StatusCodes.BAD_REQUEST, "This Name already used");
   }
 
   const result = await prisma.subCategory.findFirstOrThrow({

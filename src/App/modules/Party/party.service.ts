@@ -1,10 +1,10 @@
 import { Party, Prisma } from "@prisma/client";
 import prisma from "../../../shared/prisma";
-import ApiError from "../../errors/ApiError";
 import { StatusCodes } from "http-status-codes";
 import { paginationHelper } from "../../../helpars/paginationHelpers";
 import { IPaginationOptions } from "../../interfaces/pagination";
 import { PartySearchAbleFields } from "./party.constant";
+import AppError from "../../errors/AppError";
 
 const createParty = async (payload: Party) => {
   const isExist = await prisma.party.findFirst({
@@ -17,7 +17,7 @@ const createParty = async (payload: Party) => {
   });
 
   if (isExist) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "This User Already Exist");
+    throw new AppError(StatusCodes.BAD_REQUEST, "This User Already Exist");
   }
   const result = await prisma.party.create({
     data: payload,
@@ -87,15 +87,13 @@ const getPartyById = async (id: number) => {
 const updatePartyById = async (id: number, payload: Partial<Party>) => {
   const isExist = await prisma.party.findFirst({
     where: {
-      name: payload.name,
-      contactNo: payload.contactNo,
-      partyType: payload.partyType,
+      id: id,
       isDeleted: false,
     },
   });
 
   if (!isExist) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "No Party Found ");
+    throw new AppError(StatusCodes.BAD_REQUEST, "No Party Found ");
   }
 
   const result = await prisma.party.update({
@@ -109,6 +107,7 @@ const updatePartyById = async (id: number, payload: Partial<Party>) => {
 };
 
 const deletePartyById = async (id: number) => {
+  console.log(id);
   const isExist = await prisma.party.findFirst({
     where: {
       id: id,
@@ -117,7 +116,7 @@ const deletePartyById = async (id: number) => {
   });
 
   if (!isExist) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "No party found");
+    throw new AppError(StatusCodes.BAD_REQUEST, "No party found");
   }
 
   const result = await prisma.party.update({

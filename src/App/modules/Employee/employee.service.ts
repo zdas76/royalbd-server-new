@@ -124,6 +124,19 @@ const getEmployeeById = async (id: number) => {
       id: id,
       status: UserStatus.ACTIVE,
     },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      nid: true,
+      dob: true,
+      workingPlase: true,
+      photo: true,
+      address: true,
+      mobile: true,
+      role: true,
+      status: true,
+    },
   });
 
   return result;
@@ -141,9 +154,25 @@ const updateEmployeeById = async (id: number, payload: Partial<Employee>) => {
   return result;
 };
 
+const deleteEmployeeById = async (id: number) => {
+  console.log(id);
+  const result = await prisma.employee.update({
+    where: {
+      id: id,
+      status: UserStatus.ACTIVE,
+    },
+    data: {
+      status: UserStatus.DELETED,
+    },
+  });
+
+  return result;
+};
+
 export const EmployeeService = {
   creatEmployeeToDB,
   getAllemployee,
   getEmployeeById,
   updateEmployeeById,
+  deleteEmployeeById,
 };

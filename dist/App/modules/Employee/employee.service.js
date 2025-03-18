@@ -131,6 +131,19 @@ const getEmployeeById = (id) => __awaiter(void 0, void 0, void 0, function* () {
             id: id,
             status: client_1.UserStatus.ACTIVE,
         },
+        select: {
+            id: true,
+            email: true,
+            name: true,
+            nid: true,
+            dob: true,
+            workingPlase: true,
+            photo: true,
+            address: true,
+            mobile: true,
+            role: true,
+            status: true,
+        },
     });
     return result;
 });
@@ -144,9 +157,23 @@ const updateEmployeeById = (id, payload) => __awaiter(void 0, void 0, void 0, fu
     });
     return result;
 });
+const deleteEmployeeById = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(id);
+    const result = yield prisma_1.default.employee.update({
+        where: {
+            id: id,
+            status: client_1.UserStatus.ACTIVE,
+        },
+        data: {
+            status: client_1.UserStatus.DELETED,
+        },
+    });
+    return result;
+});
 exports.EmployeeService = {
     creatEmployeeToDB,
     getAllemployee,
     getEmployeeById,
     updateEmployeeById,
+    deleteEmployeeById,
 };

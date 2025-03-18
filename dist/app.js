@@ -8,9 +8,10 @@ const routes_1 = __importDefault(require("./App/routes"));
 const http_status_codes_1 = require("http-status-codes");
 const express_1 = __importDefault(require("express"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const globalErrorHandler_1 = __importDefault(require("./App/middlewares/globalErrorHandler"));
 const app = (0, express_1.default)();
 app.use((0, cors_1.default)({
-    origin: ["https://server.royalbdgroup.com", "http://localhost:5173"],
+    origin: ["https://royalbd-client.vercel.app/", "http://localhost:5173"],
     credentials: true,
 }));
 app.use((0, cookie_parser_1.default)());
@@ -21,7 +22,7 @@ app.get("/", (req, res) => {
     res.send("Hello World!");
 });
 app.use("/api/v1", routes_1.default);
-// app.use(globalErrorHandler);
+app.use(globalErrorHandler_1.default);
 app.use((req, res, next) => {
     res.status(http_status_codes_1.StatusCodes.NOT_FOUND).json({
         success: false,

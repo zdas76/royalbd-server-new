@@ -14,8 +14,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CagetoryService = void 0;
 const prisma_1 = __importDefault(require("../../../shared/prisma"));
-const ApiError_1 = __importDefault(require("../../errors/ApiError"));
 const http_status_codes_1 = require("http-status-codes");
+const AppError_1 = __importDefault(require("../../errors/AppError"));
 const createCategoryToDB = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
     const category = yield prisma_1.default.category.findFirst({
         where: {
@@ -23,7 +23,7 @@ const createCategoryToDB = (payLoad) => __awaiter(void 0, void 0, void 0, functi
         },
     });
     if (category) {
-        throw new ApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "This Name already used");
+        throw new AppError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "This Name already used");
     }
     const result = yield prisma_1.default.category.create({
         data: {
@@ -43,7 +43,7 @@ const categoryUpdate = (payLoad) => __awaiter(void 0, void 0, void 0, function* 
         },
     });
     if (!category) {
-        throw new ApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "This Name already used");
+        throw new AppError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "This Name already used");
     }
     const result = yield prisma_1.default.category.update({
         where: {

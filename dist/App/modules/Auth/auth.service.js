@@ -52,8 +52,8 @@ const prisma_1 = __importDefault(require("../../../shared/prisma"));
 const bcrypt = __importStar(require("bcryptjs"));
 const jwtHelpers_1 = require("../../../helpars/jwtHelpers");
 const config_1 = __importDefault(require("../../../config"));
-const ApiError_1 = __importDefault(require("../../errors/ApiError"));
 const emailSender_1 = __importDefault(require("./emailSender"));
+const AppError_1 = __importDefault(require("../../errors/AppError"));
 const loginUser = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
     const userData = yield prisma_1.default.employee.findFirst({
         where: {
@@ -69,12 +69,14 @@ const loginUser = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
         throw new Error("Password incorrect!");
     }
     const accessToken = jwtHelpers_1.jwtHelpers.generateToken({
+        id: userData.id,
         email: userData === null || userData === void 0 ? void 0 : userData.email,
         name: userData.name,
         nid: userData.nid,
         role: userData === null || userData === void 0 ? void 0 : userData.role,
     }, config_1.default.jwt.jwt_secret, config_1.default.jwt.expires_in);
     const refreshToken = jwtHelpers_1.jwtHelpers.generateToken({
+        id: userData.id,
         email: userData === null || userData === void 0 ? void 0 : userData.email,
         name: userData.name,
         nid: userData.nid,
@@ -91,7 +93,7 @@ const refreshToken = (token) => __awaiter(void 0, void 0, void 0, function* () {
         userData = jwtHelpers_1.jwtHelpers.verifyToken(token, config_1.default.jwt.refresh_token_secret);
     }
     catch (error) {
-        throw new ApiError_1.default(http_status_codes_1.default.UNAUTHORIZED, "Your are not Authorized");
+        throw new AppError_1.default(http_status_codes_1.default.UNAUTHORIZED, "Your are not Authorized");
     }
     const checkUser = yield prisma_1.default.employee.findUniqueOrThrow({
         where: {
@@ -99,7 +101,13 @@ const refreshToken = (token) => __awaiter(void 0, void 0, void 0, function* () {
             status: client_1.UserStatus.ACTIVE,
         },
     });
-    const accessToken = jwtHelpers_1.jwtHelpers.generateToken({ email: checkUser.email, role: checkUser.role }, config_1.default.jwt.jwt_secret, config_1.default.jwt.expires_in);
+    const accessToken = jwtHelpers_1.jwtHelpers.generateToken({
+        id: userData.id,
+        email: userData === null || userData === void 0 ? void 0 : userData.email,
+        name: userData.name,
+        nid: userData.nid,
+        role: userData === null || userData === void 0 ? void 0 : userData.role,
+    }, config_1.default.jwt.jwt_secret, config_1.default.jwt.expires_in);
     return {
         accessToken,
     };
@@ -112,9 +120,9 @@ const changePassword = (user, data) => __awaiter(void 0, void 0, void 0, functio
     });
     const isCorrectPassword = yield bcrypt.compare(data.olePassword, userData.password);
     if (!isCorrectPassword) {
-        throw new ApiError_1.default(http_status_codes_1.default.UNAUTHORIZED, "Your are not Authorized");
+        throw new AppError_1.default(http_status_codes_1.default.UNAUTHORIZED, "Your are not Authorized");
     }
-    const hassPassWord = yield bcrypt.hash(data.newPassword, 12);
+    const hassPassWord = yield bcrypt.hash(data.newPassword, parseInt(config_1.default.hash_round));
     yield prisma_1.default.employee.update({
         where: {
             email: userData.email,
@@ -135,7 +143,13 @@ const forgotPassword = (playLoad) => __awaiter(void 0, void 0, void 0, function*
             status: client_1.UserStatus.ACTIVE,
         },
     });
-    const resetPasswordToken = jwtHelpers_1.jwtHelpers.generateToken({ email: userData.email, role: userData.role }, config_1.default.jwt.reset_pass_secret, config_1.default.jwt.reset_pass_token_expires_in);
+    const resetPasswordToken = jwtHelpers_1.jwtHelpers.generateToken({
+        id: userData.id,
+        email: userData === null || userData === void 0 ? void 0 : userData.email,
+        name: userData.name,
+        nid: userData.nid,
+        role: userData === null || userData === void 0 ? void 0 : userData.role,
+    }, config_1.default.jwt.reset_pass_secret, config_1.default.jwt.reset_pass_token_expires_in);
     const resetPassLink = config_1.default.reset_pass_link +
         `?email=${userData.email}&token=${resetPasswordToken}`;
     yield (0, emailSender_1.default)(userData.email, `
@@ -155,9 +169,9 @@ const resetPassword = (token, payLoad) => __awaiter(void 0, void 0, void 0, func
     });
     const isValidToken = jwtHelpers_1.jwtHelpers.verifyToken(token, config_1.default.jwt.reset_pass_secret);
     if (!isValidToken) {
-        throw new ApiError_1.default(http_status_codes_1.default.UNAUTHORIZED, "Your are not Authorized");
+        throw new AppError_1.default(http_status_codes_1.default.UNAUTHORIZED, "Your are not Authorized");
     }
-    const hassPassWord = yield bcrypt.hash(payLoad.passWord, 12);
+    const hassPassWord = yield bcrypt.hash(payLoad.passWord, parseInt(config_1.default.hash_round));
     yield prisma_1.default.employee.update({
         where: {
             email: userData.email,

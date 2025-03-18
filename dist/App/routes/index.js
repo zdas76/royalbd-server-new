@@ -11,6 +11,10 @@ const employee_route_1 = require("../modules/Employee/employee.route");
 const party_route_1 = require("../modules/Party/party.route");
 const AccountsItem_route_1 = require("../modules/AccountsItem/AccountsItem.route");
 const piller_route_1 = require("../modules/Pilliers/piller.route");
+const unit_route_1 = require("../modules/unit/unit.route");
+const product_route_1 = require("../modules/products/product.route");
+const inventories_route_1 = require("../modules/inventories/inventories.route");
+const raw_route_1 = require("../modules/rawMaterials/raw.route");
 const router = express_1.default.Router();
 const moduleRoutes = [
     {
@@ -40,6 +44,22 @@ const moduleRoutes = [
     {
         path: "/accounts_item",
         route: AccountsItem_route_1.AccountItemRoute,
+    },
+    {
+        path: "/unit",
+        route: unit_route_1.UnitRoute,
+    },
+    {
+        path: "/product",
+        route: product_route_1.ProductRoute,
+    },
+    {
+        path: "/raw_material",
+        route: raw_route_1.RawMaterialRoute,
+    },
+    {
+        path: "/inventory",
+        route: inventories_route_1.InventoryRoute,
     },
 ];
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

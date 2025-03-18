@@ -14,8 +14,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SubCagetoryService = void 0;
 const prisma_1 = __importDefault(require("../../../shared/prisma"));
-const ApiError_1 = __importDefault(require("../../errors/ApiError"));
 const http_status_codes_1 = require("http-status-codes");
+const AppError_1 = __importDefault(require("../../errors/AppError"));
 const createSubCategoryToDB = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
     console.log(payLoad);
     const subCategory = yield prisma_1.default.subCategory.findFirst({
@@ -24,12 +24,12 @@ const createSubCategoryToDB = (payLoad) => __awaiter(void 0, void 0, void 0, fun
         },
     });
     if (subCategory) {
-        throw new ApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "This Name already used");
+        throw new AppError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "This Name already used");
     }
     const result = yield prisma_1.default.subCategory.create({
         data: {
             subCategoryName: payLoad.subCategoryName,
-            categorryId: payLoad.categorryId,
+            categoryId: payLoad.categoryId,
         },
     });
     return result;
@@ -49,7 +49,7 @@ const subCategoryUpdate = (payLoad) => __awaiter(void 0, void 0, void 0, functio
         },
     });
     if (!subCategory) {
-        throw new ApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "This Name already used");
+        throw new AppError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "This Name already used");
     }
     const result = yield prisma_1.default.subCategory.update({
         where: {
@@ -68,7 +68,7 @@ const getCategorybyId = (payLoad) => __awaiter(void 0, void 0, void 0, function*
         },
     });
     if (!subCategory) {
-        throw new ApiError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "This Name already used");
+        throw new AppError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "This Name already used");
     }
     const result = yield prisma_1.default.subCategory.findFirstOrThrow({
         where: {

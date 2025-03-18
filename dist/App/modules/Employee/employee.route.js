@@ -15,5 +15,9 @@ route.post("/create-employee", uploads_1.default.single("photo"), (req, res, nex
 });
 route.get("/", empoyee_controllers_1.EmployeeControllers.getEmployee);
 route.get("/:id", empoyee_controllers_1.EmployeeControllers.getEmployeeById);
-route.put("/:id", empoyee_controllers_1.EmployeeControllers.updateEmployeeById);
+route.put("/:id", uploads_1.default.single("photo"), (req, res, next) => {
+    req.body = employee_validation_1.userValidaton.updateEmployee.parse(JSON.parse(req.body.data));
+    return empoyee_controllers_1.EmployeeControllers.updateEmployeeById(req, res, next);
+});
+route.delete("/:id", empoyee_controllers_1.EmployeeControllers.deleteEmployeeById);
 exports.EmployeeRoute = route;

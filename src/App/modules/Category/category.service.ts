@@ -1,8 +1,8 @@
 import { Category } from "@prisma/client";
 import { Request, Response } from "express";
 import prisma from "../../../shared/prisma";
-import ApiError from "../../errors/ApiError";
 import { StatusCodes } from "http-status-codes";
+import AppError from "../../errors/AppError";
 
 const createCategoryToDB = async (payLoad: Category) => {
   const category = await prisma.category.findFirst({
@@ -12,7 +12,7 @@ const createCategoryToDB = async (payLoad: Category) => {
   });
 
   if (category) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "This Name already used");
+    throw new AppError(StatusCodes.BAD_REQUEST, "This Name already used");
   }
 
   const result = await prisma.category.create({
@@ -38,7 +38,7 @@ const categoryUpdate = async (payLoad: Category) => {
   });
 
   if (!category) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "This Name already used");
+    throw new AppError(StatusCodes.BAD_REQUEST, "This Name already used");
   }
 
   const result = await prisma.category.update({

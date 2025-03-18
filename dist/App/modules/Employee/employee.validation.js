@@ -14,6 +14,19 @@ const createEmployee = zod_1.z.object({
         mobile: zod_1.z.string({ required_error: "Father name is required" }),
     }),
 });
+const updateEmployee = zod_1.z.object({
+    employee: zod_1.z.object({
+        name: zod_1.z.string({ required_error: "Name is required" }).optional(),
+        nid: zod_1.z.string({ required_error: "NID number required" }).optional(),
+        dob: zod_1.z.string({ required_error: "Father name is required" }).optional(),
+        workingPlase: zod_1.z
+            .string({ required_error: "Father name is required" })
+            .optional(),
+        address: zod_1.z.string({ required_error: "Father name is required" }).optional(),
+        mobile: zod_1.z.string({ required_error: "Father name is required" }).optional(),
+    }),
+});
 exports.userValidaton = {
     createEmployee,
+    updateEmployee,
 };

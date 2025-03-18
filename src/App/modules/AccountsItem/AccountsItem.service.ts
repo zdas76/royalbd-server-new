@@ -1,20 +1,30 @@
 import { AccountsItem } from "@prisma/client";
 import prisma from "../../../shared/prisma";
-import ApiError from "../../errors/ApiError";
 import { StatusCodes } from "http-status-codes";
+import AppError from "../../errors/AppError";
 
 const createAccountsItemtoDB = async (payLoad: AccountsItem) => {
+  console.log(payLoad);
   const isExist = await prisma.accountsItem.findFirst({
     where: {
       accountMainPillerId: payLoad.accountMainPillerId,
-      accountsItemName: payLoad.accountsItemId,
+      accountsItemId: payLoad.accountsItemId,
     },
   });
 
   if (isExist) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "This item already exist");
+    throw new AppError(StatusCodes.BAD_REQUEST, "This item already exist");
   }
 
+  const checkPiller = await prisma.accountMainPiller.findUnique({
+    where: {
+      pillerId: payLoad.accountMainPillerId,
+    },
+  });
+
+  if (!checkPiller) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "Accounts head not found");
+  }
   const result = await prisma.accountsItem.create({
     data: payLoad,
   });
@@ -23,7 +33,10 @@ const createAccountsItemtoDB = async (payLoad: AccountsItem) => {
 };
 
 const getAccountsItemFromDB = async (payLoad: AccountsItem) => {
-  console.log("first", payLoad);
+  const result = await prisma.accountsItem.groupBy({
+    by: ["accountMainPillerId"],
+  });
+  return result;
 };
 
 const getAccountsItemByIdFromDB = async (payLoad: AccountsItem) => {
