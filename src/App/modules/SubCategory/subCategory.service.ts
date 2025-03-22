@@ -5,8 +5,6 @@ import { StatusCodes } from "http-status-codes";
 import AppError from "../../errors/AppError";
 
 const createSubCategoryToDB = async (payLoad: SubCategory) => {
-  console.log(payLoad);
-
   const subCategory = await prisma.subCategory.findFirst({
     where: {
       subCategoryName: payLoad.subCategoryName,

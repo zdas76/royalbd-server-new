@@ -30,12 +30,14 @@ model Employee {
 }
 
 model Party {
-  id        Int       @id @default(autoincrement())
-  name      String    @db.VarChar(50)
-  contactNo String    @db.VarChar(15)
-  address   String    @db.VarChar(200)
+  id        Int         @id @default(autoincrement())
+  name      String      @db.VarChar(50)
+  contactNo String      @db.VarChar(15)
+  address   String      @db.VarChar(200)
   partyType PartyType
-  isDeleted Boolean   @default(false)
+  isDeleted Boolean     @default(false)
+  journal   Journal[]
+  Inventory Inventory[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -86,8 +88,10 @@ model AccountsItem {
   accountMainPillerId String            @db.VarChar(2)
   accountsItemId      String            @db.VarChar(4)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  journalsCredit Journal[] @relation(name: "CreditRelation")
+  journalsDebit  Journal[] @relation(name: "DebitRelation")
 
   @@map("account_items")
 }
@@ -114,8 +118,9 @@ model Product {
   isDeleted     Boolean     @default(false)
   status        Status      @default(ACTIVE)
 
-  createdAt DateTime @default(now())
-  updateAt  DateTime @updatedAt
+  createdAt DateTime    @default(now())
+  updateAt  DateTime    @updatedAt
+  Inventory Inventory[]
 
   @@map("products")
 }
@@ -127,35 +132,113 @@ model RawMaterial {
   isDeleted   Boolean @default(false)
   status      Status  @default(ACTIVE)
 
-  createdAt DateTime @default(now())
-  updateAt  DateTime @updatedAt
+  createdAt DateTime    @default(now())
+  updateAt  DateTime    @updatedAt
+  Inventory Inventory[]
 
   @@map("raw_materials")
 }
 
 model Inventory {
-  id            Int            @id @default(autoincrement())
-  name          String         @unique
-  type          ItemType
-  category      String?
-  supplier      String?
-  unitePrice    Decimal        @default(0.00)
-  quantity      Decimal        @default(0.00)
-  totalCost     Decimal        @default(0.00)
-  closingStocks ClosingStock[] @relation("InventoryItemToClosingStock")
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  id             Int           @id @default(autoincrement())
+  type           ItemType
+  rawOrProductId Int
+  raWMaterial    RawMaterial?  @relation(fields: [rawOrProductId], references: [id], map: "inventories_raw_materials_fk")
+  product        Product?      @relation(fields: [rawOrProductId], references: [id], map: "inventories_customerId_fk")
+  Party          Party?        @relation(fields: [partyId], references: [id])
+  partyId        Int?
+  unitePrice     Decimal       @default(0.00)
+  quantityAdd    Decimal?      @default(0.00)
+  quantityLess   Decimal?      @default(0.00)
+  closingStocks  ClosingStock? @relation("InventoryItemToClosingStock")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Journal Journal[]
 
   @@map("inventories")
 }
 
 model ClosingStock {
   id              Int       @id @default(autoincrement())
-  inventoryItemId Int
+  inventoryItemId Int       @unique
   date            DateTime  @default(now())
   closingQuantity Int
   closingPrice    Decimal
   inventoryItem   Inventory @relation(fields: [inventoryItemId], references: [id], name: "InventoryItemToClosingStock")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model Customer {
+  id            Int       @id @default(autoincrement())
+  name          String?
+  contactNumber String?
+  address       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  journal       Journal[]
+
+  @@map("customers")
+}
+
+model BankAccount {
+  id              Int               @id @default(autoincrement())
+  bankName        String
+  branceName      String?
+  accountNumber   String
+  bankClosing     BankClosing?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  bankTransaction BankTransaction[]
+}
+
+model BankClosing {
+  id            Int         @id @default(autoincrement())
+  bankAccountId Int         @unique
+  date          DateTime    @default(now())
+  closingAmount Decimal     @default(0.00)
+  bankAccount   BankAccount @relation(fields: [bankAccountId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model BankTransaction {
+  id            Int         @id @default(autoincrement())
+  bankAccountId Int
+  bankAccount   BankAccount @relation(fields: [bankAccountId], references: [id])
+  debitAmount   Int
+  creditAmount  Int
+}
+
+model Journal {
+  id                Int        @id @default(autoincrement())
+  date              DateTime
+  invoiceNo         String     @unique
+  bankTxId          String
+  partyType         PartyType?
+  partyOrcustomerId Int?
+  party             Party?     @relation(fields: [partyOrcustomerId], references: [id], map: "journals_partyId_fk")
+  customer          Customer?  @relation(fields: [partyOrcustomerId], references: [id], map: "journals_customerId_fk")
+
+  debitAccountsItemId Int?
+  debitAccountsItem   AccountsItem? @relation(name: "DebitRelation", fields: [debitAccountsItemId], references: [id])
+
+  creditAccountsItemId Int?
+  creditAccountsItem   AccountsItem? @relation(name: "CreditRelation", fields: [creditAccountsItemId], references: [id])
+
+  inventoryItemId Int?
+  inventoryItem   Inventory? @relation(fields: [inventoryItemId], references: [id], map: "journals_inventoryItemId_fk")
+
+  creditAmount Decimal? @default(0.00)
+  debitAmount  Decimal? @default(0.00)
+  narration    String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("journals")
 }
 
 enum ItemType {
@@ -185,4 +268,5 @@ enum Status {
 enum PartyType {
   VENDOR
   CUSTOMER
+  SUPPLIER
 }
