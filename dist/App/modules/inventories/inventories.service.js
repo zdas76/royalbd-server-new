@@ -18,7 +18,7 @@ const AppError_1 = __importDefault(require("../../errors/AppError"));
 const http_status_codes_1 = require("http-status-codes");
 const createInventory = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
     const checkData = payload.map((item) => {
-        if (item.type == "RAW_MATERIAL") {
+        if (item.itemType == "RAW_MATERIAL") {
             return rawMaterialIsExist({ id: item.id });
         }
         else {

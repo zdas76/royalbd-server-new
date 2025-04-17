@@ -7,7 +7,7 @@ const handelZodError = (error) => {
             message: issue.message,
         };
     });
-    const statusCode = 4000;
+    const statusCode = 400;
     return {
         statusCode,
         message: "Validation error",

@@ -5,7 +5,7 @@ import { StatusCodes } from "http-status-codes";
 
 const createInventory = async (id: number, payload: Inventory[]) => {
   const checkData = payload.map((item) => {
-    if (item.type == "RAW_MATERIAL") {
+    if (item.itemType == "RAW_MATERIAL") {
       return rawMaterialIsExist({ id: item.id });
     } else {
       return porductIsExist({ id: item.id });

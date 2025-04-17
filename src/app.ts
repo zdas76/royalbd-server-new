@@ -10,7 +10,7 @@ const app: Application = express();
 
 app.use(
   cors({
-    origin: ["https://royalbd-client.vercel.app/", "http://localhost:5173"],
+    origin: ["https://royalbd-client.vercel.app", "http://localhost:5173"],
     credentials: true,
   })
 );

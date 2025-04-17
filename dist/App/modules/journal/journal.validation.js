@@ -1,8 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JournalSchema = void 0;
+exports.PurchestSchema = void 0;
 const zod_1 = require("zod");
-const CreateJournalSchema = zod_1.z.object({
+const CreatePurchestSchema = zod_1.z.object({
     body: zod_1.z.object({
         date: zod_1.z.date(),
         invoiceNo: zod_1.z.string().min(1, "Invoice number is required"),
@@ -16,6 +16,6 @@ const CreateJournalSchema = zod_1.z.object({
         narration: zod_1.z.string().min(1, "Narration is required"),
     }),
 });
-exports.JournalSchema = {
-    CreateJournalSchema,
+exports.PurchestSchema = {
+    CreatePurchestSchema,
 };

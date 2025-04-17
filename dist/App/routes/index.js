@@ -15,6 +15,9 @@ const unit_route_1 = require("../modules/unit/unit.route");
 const product_route_1 = require("../modules/products/product.route");
 const inventories_route_1 = require("../modules/inventories/inventories.route");
 const raw_route_1 = require("../modules/rawMaterials/raw.route");
+const journal_route_1 = require("../modules/journal/journal.route");
+const bank_route_1 = require("../modules/bank/bank.route");
+const transaction_route_1 = require("../modules/bankTransaction/transaction.route");
 const router = express_1.default.Router();
 const moduleRoutes = [
     {
@@ -60,6 +63,18 @@ const moduleRoutes = [
     {
         path: "/inventory",
         route: inventories_route_1.InventoryRoute,
+    },
+    {
+        path: "/journal",
+        route: journal_route_1.JournalRoute,
+    },
+    {
+        path: "/bank",
+        route: bank_route_1.BankRoute,
+    },
+    {
+        path: "/transaction",
+        route: transaction_route_1.TransactionRoute,
     },
 ];
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

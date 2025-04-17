@@ -9,24 +9,24 @@ import { Request } from "express";
 import { UserSearchAbleFields } from "./employee.constant";
 
 const creatEmployeeToDB = async (req: Request): Promise<Partial<Employee>> => {
-  req.body.employee.photo = req?.file?.filename;
+  req.body.photo = req?.file?.filename;
 
   const hashedPassword = bcrypt.hashSync(
-    req.body.employee.password,
+    req.body.password,
     parseInt(config.hash_round as any)
   );
 
   const createEmployee = await prisma.employee.create({
     data: {
-      email: req.body.employee.email,
+      email: req.body.email,
       password: hashedPassword,
-      name: req.body.employee.name,
-      nid: req.body.employee.nid,
-      dob: req.body.employee.dob,
-      workingPlase: req.body.employee.workingPlase,
-      photo: req.body.employee.photo,
-      address: req.body.employee.address,
-      mobile: req.body.employee.mobile,
+      name: req.body.name,
+      nid: req.body.nid,
+      dob: req.body.dob,
+      workingPlase: req.body.workingPlase,
+      photo: req.body.photo,
+      address: req.body.address,
+      mobile: req.body.mobile,
     },
     select: {
       id: true,

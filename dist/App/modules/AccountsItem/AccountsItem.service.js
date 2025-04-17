@@ -17,7 +17,6 @@ const prisma_1 = __importDefault(require("../../../shared/prisma"));
 const http_status_codes_1 = require("http-status-codes");
 const AppError_1 = __importDefault(require("../../errors/AppError"));
 const createAccountsItemtoDB = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(payLoad);
     const isExist = yield prisma_1.default.accountsItem.findFirst({
         where: {
             accountMainPillerId: payLoad.accountMainPillerId,
@@ -41,16 +40,43 @@ const createAccountsItemtoDB = (payLoad) => __awaiter(void 0, void 0, void 0, fu
     return result;
 });
 const getAccountsItemFromDB = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield prisma_1.default.accountsItem.groupBy({
-        by: ["accountMainPillerId"],
+    let filerValue = {};
+    if (payLoad) {
+        const filer = payLoad.split(",").map((ids) => {
+            return { pillerId: ids };
+        });
+        filerValue = {
+            accountsPiler: {
+                OR: filer,
+            },
+        };
+    }
+    const result = yield prisma_1.default.accountsItem.findMany({
+        where: filerValue,
+        orderBy: {
+            accountMainPillerId: "asc",
+        },
+        include: {
+            accountsPiler: true,
+        },
     });
     return result;
 });
-const getAccountsItemByIdFromDB = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("first", payLoad);
+const getAccountsItemByIdFromDB = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield prisma_1.default.accountsItem.findFirst({
+        where: { id },
+        include: {
+            accountsPiler: true,
+        },
+    });
+    return result;
 });
-const updateAccountsItemFromDBbyId = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("first", payLoad);
+const updateAccountsItemFromDBbyId = (id, payLoad) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield prisma_1.default.accountsItem.update({
+        where: { id },
+        data: payLoad,
+    });
+    return result;
 });
 exports.AccountItemService = {
     createAccountsItemtoDB,

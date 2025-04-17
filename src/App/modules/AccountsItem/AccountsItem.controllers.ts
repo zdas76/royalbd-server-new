@@ -16,7 +16,9 @@ const createAccountItem = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAccountItem = catchAsync(async (req: Request, res: Response) => {
-  const result = await AccountItemService.getAccountsItemFromDB(req.body);
+  const query = req.query.pillerIds as string;
+
+  const result = await AccountItemService.getAccountsItemFromDB(query);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -27,7 +29,8 @@ const getAccountItem = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAccountItemById = catchAsync(async (req: Request, res: Response) => {
-  const result = await AccountItemService.getAccountsItemByIdFromDB(req.body);
+  const id = parseInt(req.params.id);
+  const result = await AccountItemService.getAccountsItemByIdFromDB(id);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -39,7 +42,9 @@ const getAccountItemById = catchAsync(async (req: Request, res: Response) => {
 
 const updateAccountItemById = catchAsync(
   async (req: Request, res: Response) => {
+    const id = parseInt(req.params.id);
     const result = await AccountItemService.updateAccountsItemFromDBbyId(
+      id,
       req.body
     );
 

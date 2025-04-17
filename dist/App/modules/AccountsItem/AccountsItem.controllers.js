@@ -27,7 +27,8 @@ const createAccountItem = (0, catchAsync_1.default)((req, res) => __awaiter(void
     });
 }));
 const getAccountItem = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield AccountsItem_service_1.AccountItemService.getAccountsItemFromDB(req.body);
+    const query = req.query.pillerIds;
+    const result = yield AccountsItem_service_1.AccountItemService.getAccountsItemFromDB(query);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
         success: true,
@@ -36,7 +37,8 @@ const getAccountItem = (0, catchAsync_1.default)((req, res) => __awaiter(void 0,
     });
 }));
 const getAccountItemById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield AccountsItem_service_1.AccountItemService.getAccountsItemByIdFromDB(req.body);
+    const id = parseInt(req.params.id);
+    const result = yield AccountsItem_service_1.AccountItemService.getAccountsItemByIdFromDB(id);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
         success: true,
@@ -45,7 +47,8 @@ const getAccountItemById = (0, catchAsync_1.default)((req, res) => __awaiter(voi
     });
 }));
 const updateAccountItemById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield AccountsItem_service_1.AccountItemService.updateAccountsItemFromDBbyId(req.body);
+    const id = parseInt(req.params.id);
+    const result = yield AccountsItem_service_1.AccountItemService.updateAccountsItemFromDBbyId(id, req.body);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
         success: true,

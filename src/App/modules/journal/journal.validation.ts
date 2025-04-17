@@ -1,7 +1,7 @@
 import { PartyType } from "@prisma/client";
 import { z } from "zod";
 
-const CreateJournalSchema = z.object({
+const CreatePurchestSchema = z.object({
   body: z.object({
     date: z.date(),
     invoiceNo: z.string().min(1, "Invoice number is required"),
@@ -17,6 +17,6 @@ const CreateJournalSchema = z.object({
   }),
 });
 
-export const JournalSchema = {
-  CreateJournalSchema,
+export const PurchestSchema = {
+  CreatePurchestSchema,
 };

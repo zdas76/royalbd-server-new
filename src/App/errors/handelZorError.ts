@@ -8,7 +8,8 @@ const handelZodError = (error: ZodError): TGenericErrorResponse => {
       message: issue.message,
     };
   });
-  const statusCode = 4000;
+  const statusCode = 400;
+
   return {
     statusCode,
     message: "Validation error",

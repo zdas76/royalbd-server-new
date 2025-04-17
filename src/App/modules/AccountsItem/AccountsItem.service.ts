@@ -4,7 +4,6 @@ import { StatusCodes } from "http-status-codes";
 import AppError from "../../errors/AppError";
 
 const createAccountsItemtoDB = async (payLoad: AccountsItem) => {
-  console.log(payLoad);
   const isExist = await prisma.accountsItem.findFirst({
     where: {
       accountMainPillerId: payLoad.accountMainPillerId,
@@ -32,19 +31,52 @@ const createAccountsItemtoDB = async (payLoad: AccountsItem) => {
   return result;
 };
 
-const getAccountsItemFromDB = async (payLoad: AccountsItem) => {
-  const result = await prisma.accountsItem.groupBy({
-    by: ["accountMainPillerId"],
+const getAccountsItemFromDB = async (payLoad: string) => {
+  let filerValue = {};
+
+  if (payLoad) {
+    const filer = payLoad.split(",").map((ids: string) => {
+      return { pillerId: ids };
+    });
+
+    filerValue = {
+      accountsPiler: {
+        OR: filer,
+      },
+    };
+  }
+
+  const result = await prisma.accountsItem.findMany({
+    where: filerValue,
+    orderBy: {
+      accountMainPillerId: "asc",
+    },
+    include: {
+      accountsPiler: true,
+    },
   });
   return result;
 };
 
-const getAccountsItemByIdFromDB = async (payLoad: AccountsItem) => {
-  console.log("first", payLoad);
+const getAccountsItemByIdFromDB = async (id: number) => {
+  const result = await prisma.accountsItem.findFirst({
+    where: { id },
+    include: {
+      accountsPiler: true,
+    },
+  });
+  return result;
 };
 
-const updateAccountsItemFromDBbyId = async (payLoad: AccountsItem) => {
-  console.log("first", payLoad);
+const updateAccountsItemFromDBbyId = async (
+  id: number,
+  payLoad: AccountsItem
+) => {
+  const result = await prisma.accountsItem.update({
+    where: { id },
+    data: payLoad,
+  });
+  return result;
 };
 
 export const AccountItemService = {

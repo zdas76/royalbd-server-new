@@ -13,11 +13,11 @@ const globalErrorHandler = (err, req, res, next) => {
     let success = false;
     let message = err.message || "Something went wrong!";
     let error = err;
-    if (error instanceof zod_1.ZodError) {
-        const simplifedError = (0, handelZorError_1.default)(error);
+    if (err instanceof zod_1.ZodError) {
+        const simplifedError = (0, handelZorError_1.default)(err);
         statusCode = simplifedError === null || simplifedError === void 0 ? void 0 : simplifedError.statusCode;
         message = simplifedError === null || simplifedError === void 0 ? void 0 : simplifedError.message;
-        error = simplifedError === null || simplifedError === void 0 ? void 0 : simplifedError.errorSources;
+        error = simplifedError.errorSources;
     }
     else if (err instanceof client_1.Prisma.PrismaClientValidationError) {
         message = "Validation Error";
@@ -25,38 +25,38 @@ const globalErrorHandler = (err, req, res, next) => {
     }
     else if (err instanceof client_1.Prisma.PrismaClientKnownRequestError) {
         if (err.code === "P2002") {
-            message = "Duplicate Key error";
+            message = "Duplicate error";
             error = err.meta;
         }
     }
-    else if (error instanceof AppError_1.default) {
-        statusCode = error === null || error === void 0 ? void 0 : error.statusCode;
-        message = error === null || error === void 0 ? void 0 : error.message;
+    else if (err instanceof AppError_1.default) {
+        statusCode = err === null || err === void 0 ? void 0 : err.statusCode;
+        message = err === null || err === void 0 ? void 0 : err.message;
         error = [
             {
                 path: "",
-                message: error.message,
+                message: err.message,
             },
         ];
     }
-    else if (error instanceof Error) {
-        message = error === null || error === void 0 ? void 0 : error.message;
+    else if (err instanceof Error) {
+        message = err === null || err === void 0 ? void 0 : err.message;
         error = [
             {
                 path: "",
-                message: error.message,
+                message: err.message,
             },
         ];
     }
+    console.log({
+        success: false,
+        message,
+        error,
+    });
     res.status(statusCode).json({
         success: false,
         message,
-        error: [
-            {
-                path: "",
-                message: error.message,
-            },
-        ],
+        error,
     });
 };
 exports.default = globalErrorHandler;

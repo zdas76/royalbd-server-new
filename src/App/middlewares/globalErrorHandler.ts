@@ -4,7 +4,6 @@ import { StatusCodes } from "http-status-codes";
 import handelZodError from "../errors/handelZorError";
 import { ZodError } from "zod";
 import AppError from "../errors/AppError";
-import config from "../../config";
 
 const globalErrorHandler = (
   err: any,
@@ -17,46 +16,47 @@ const globalErrorHandler = (
   let message = err.message || "Something went wrong!";
   let error = err;
 
-  if (error instanceof ZodError) {
-    const simplifedError = handelZodError(error);
+  if (err instanceof ZodError) {
+    const simplifedError = handelZodError(err);
     statusCode = simplifedError?.statusCode;
     message = simplifedError?.message;
-    error = simplifedError?.errorSources;
+    error = simplifedError.errorSources;
   } else if (err instanceof Prisma.PrismaClientValidationError) {
     message = "Validation Error";
     error = err.message;
   } else if (err instanceof Prisma.PrismaClientKnownRequestError) {
     if (err.code === "P2002") {
-      message = "Duplicate Key error";
+      message = "Duplicate error";
       error = err.meta;
     }
-  } else if (error instanceof AppError) {
-    statusCode = error?.statusCode;
-    message = error?.message;
+  } else if (err instanceof AppError) {
+    statusCode = err?.statusCode;
+    message = err?.message;
     error = [
       {
         path: "",
-        message: error.message,
+        message: err.message,
       },
     ];
-  } else if (error instanceof Error) {
-    message = error?.message;
+  } else if (err instanceof Error) {
+    message = err?.message;
     error = [
       {
         path: "",
-        message: error.message,
+        message: err.message,
       },
     ];
   }
+  console.log({
+    success: false,
+    message,
+    error,
+  });
+
   res.status(statusCode).json({
     success: false,
     message,
-    error: [
-      {
-        path: "",
-        message: error.message,
-      },
-    ],
+    error,
   });
 };
 

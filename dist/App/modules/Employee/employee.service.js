@@ -32,19 +32,19 @@ const paginationHelpers_1 = require("../../../helpars/paginationHelpers");
 const employee_constant_1 = require("./employee.constant");
 const creatEmployeeToDB = (req) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
-    req.body.employee.photo = (_a = req === null || req === void 0 ? void 0 : req.file) === null || _a === void 0 ? void 0 : _a.filename;
-    const hashedPassword = bcryptjs_1.default.hashSync(req.body.employee.password, parseInt(config_1.default.hash_round));
+    req.body.photo = (_a = req === null || req === void 0 ? void 0 : req.file) === null || _a === void 0 ? void 0 : _a.filename;
+    const hashedPassword = bcryptjs_1.default.hashSync(req.body.password, parseInt(config_1.default.hash_round));
     const createEmployee = yield prisma_1.default.employee.create({
         data: {
-            email: req.body.employee.email,
+            email: req.body.email,
             password: hashedPassword,
-            name: req.body.employee.name,
-            nid: req.body.employee.nid,
-            dob: req.body.employee.dob,
-            workingPlase: req.body.employee.workingPlase,
-            photo: req.body.employee.photo,
-            address: req.body.employee.address,
-            mobile: req.body.employee.mobile,
+            name: req.body.name,
+            nid: req.body.nid,
+            dob: req.body.dob,
+            workingPlase: req.body.workingPlase,
+            photo: req.body.photo,
+            address: req.body.address,
+            mobile: req.body.mobile,
         },
         select: {
             id: true,

@@ -9,7 +9,7 @@ const createParty = zod_1.default.object({
     body: zod_1.default.object({
         name: zod_1.default.string({ required_error: "Name is required" }).trim(),
         contactNo: zod_1.default.string({ required_error: "Contact Number is required" }),
-        partyType: zod_1.default.enum(["VENDOR", "CUSTOMER"]),
+        partyType: zod_1.default.enum(["VENDOR", "SUPPLIER"]),
         address: zod_1.default.string().optional(),
     }),
 });
@@ -20,7 +20,7 @@ const UpdateParty = zod_1.default.object({
             .string({ required_error: "Contact Number is required" })
             .optional(),
         partyType: zod_1.default
-            .enum(["VENDOR", "CUSTOMER"], {
+            .enum(["VENDOR", "SUPPLIER"], {
             required_error: "Party type is required",
         })
             .optional(),

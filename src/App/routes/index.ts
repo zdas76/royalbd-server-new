@@ -10,6 +10,9 @@ import { UnitRoute } from "../modules/unit/unit.route";
 import { ProductRoute } from "../modules/products/product.route";
 import { InventoryRoute } from "../modules/inventories/inventories.route";
 import { RawMaterialRoute } from "../modules/rawMaterials/raw.route";
+import { JournalRoute } from "../modules/journal/journal.route";
+import { BankRoute } from "../modules/bank/bank.route";
+import { TransactionRoute } from "../modules/bankTransaction/transaction.route";
 
 const router = express.Router();
 
@@ -57,6 +60,18 @@ const moduleRoutes = [
   {
     path: "/inventory",
     route: InventoryRoute,
+  },
+  {
+    path: "/journal",
+    route: JournalRoute,
+  },
+  {
+    path: "/bank",
+    route: BankRoute,
+  },
+  {
+    path: "/transaction",
+    route: TransactionRoute,
   },
 ];
 
