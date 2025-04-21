@@ -34,6 +34,7 @@ const updateVoucherById = () => __awaiter(void 0, void 0, void 0, function* () {
 });
 //Create Purchase Received Voucher
 const createPurchestReceivedIntoDB = (payload) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("payload", payload);
     const createPurchestVoucher = yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
         var _a;
         const partyExists = yield tx.party.findUnique({
@@ -97,7 +98,6 @@ const createPurchestReceivedIntoDB = (payload) => __awaiter(void 0, void 0, void
                 return {
                     itemType: item.itemType,
                     productId: item.rawOrProductId,
-                    paymentType: payload.paymentType,
                     unitePrice: new client_1.Prisma.Decimal(item.unitPrice || 0),
                     quantityAdd: new client_1.Prisma.Decimal(item.quantityAdd || 0),
                     discount: new client_1.Prisma.Decimal((item === null || item === void 0 ? void 0 : item.discount) || 0),
@@ -273,10 +273,105 @@ const createSalesVoucher = (payload) => __awaiter(void 0, void 0, void 0, functi
     }));
     return createSalseVoucher;
 });
+// Create Payment Voucher
+const createPaymentVoucher = (payload) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("first", payload);
+    const createVoucher = yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a;
+        //check party
+        const partyExists = yield tx.party.findFirst({
+            where: { id: payload.partyOrcustomerId },
+        });
+        if (!partyExists) {
+            throw new Error(`Invalid partyOrcustomerId: ${payload.partyOrcustomerId}. No matching Party or Customer found.`);
+        }
+        const transactionInfoData = {
+            date: payload === null || payload === void 0 ? void 0 : payload.date,
+            voucherNo: payload.voucherNo,
+            partyType: partyExists.partyType,
+            partyId: partyExists.id,
+            voucherType: client_1.VoucherType.RECEIPT,
+        };
+        // step 1. create transaction entries
+        const createTransactionInfo = yield tx.transactionInfo.create({
+            data: transactionInfoData,
+        });
+        // 2. create bank transaction
+        const BankTXData = (_a = payload === null || payload === void 0 ? void 0 : payload.creditItem) === null || _a === void 0 ? void 0 : _a.map((item) => {
+            if (item.bankId > 0 && item.bank_account !== null)
+                ({
+                    bankAccountId: item === null || item === void 0 ? void 0 : item.bank_account,
+                    creditAmount: new client_1.Prisma.Decimal((item === null || item === void 0 ? void 0 : item.creditAmount) || 0),
+                });
+        });
+        console.log("first", BankTXData);
+        if (!BankTXData === undefined && BankTXData.length > 0) {
+            yield tx.bankTransaction.createMany({
+                data: BankTXData.map((bankTx) => (Object.assign(Object.assign({}, bankTx), { transectionId: createTransactionInfo.id }))),
+            });
+        }
+    }));
+    return createVoucher;
+});
+const createReceiptVoucher = (payload) => __awaiter(void 0, void 0, void 0, function* () {
+    const createVoucher = yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+        //check party
+        const partyExists = yield tx.party.findFirst({
+            where: { id: payload.partyOrcustomerId },
+        });
+        if (!partyExists) {
+            throw new Error(`Invalid partyOrcustomerId: ${payload.partyOrcustomerId}. No matching Party or Customer found.`);
+        }
+        const transactionInfoData = {
+            date: payload === null || payload === void 0 ? void 0 : payload.date,
+            voucherNo: payload.voucherNo,
+            partyType: partyExists.partyType,
+            partyId: partyExists.id,
+            paymentType: client_1.PaymentType.PAID,
+            voucherType: client_1.VoucherType.SALES,
+        };
+        // step 1. create transaction entries
+        const createTransactionInfo = yield tx.transactionInfo.create({
+            data: transactionInfoData,
+            include: {
+                bankTransaction: true, // Fetch related bank transactions
+            },
+        });
+        const journalDebitItems = payload.debitItem.map((item) => ({
+            transectionId: createTransactionInfo.id,
+            accountsItemId: item.accountsItemId,
+            debitAmount: new client_1.Prisma.Decimal(item.debitAmount || 0),
+            narration: (item === null || item === void 0 ? void 0 : item.narration) || "",
+        }));
+        // Step 7: Prepare Journal Credit Entries (For Payment Accounts)
+        const journalCreditItems = payload.creditItem.map((item) => ({
+            transectionId: createTransactionInfo.id,
+            accountsItemId: item.accountsItemId,
+            creditAmount: new client_1.Prisma.Decimal(item.creditAmount || 0),
+            narration: (item === null || item === void 0 ? void 0 : item.narration) || "",
+        }));
+        const journalItems = [...journalDebitItems, ...journalCreditItems];
+        const createJournal = yield tx.journal.createMany({
+            data: journalItems,
+        });
+        return createJournal;
+    }));
+    return createVoucher;
+});
+const createJournalVoucher = () => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("first");
+});
+const createQantaVoucher = () => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("first");
+});
 exports.JurnalService = {
     createPurchestReceivedIntoDB,
     createSalesVoucher,
     getAllVucher,
     getVoucherById,
     updateVoucherById,
+    createPaymentVoucher,
+    createReceiptVoucher,
+    createJournalVoucher,
+    createQantaVoucher,
 };

@@ -156,7 +156,7 @@ model ClosingStock {
 model Customer {
   id            Int      @id @default(autoincrement())
   name          String?
-  contactNumber String?
+  contactNumber String   @unique
   address       String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

@@ -13,6 +13,7 @@ import { RawMaterialRoute } from "../modules/rawMaterials/raw.route";
 import { JournalRoute } from "../modules/journal/journal.route";
 import { BankRoute } from "../modules/bank/bank.route";
 import { TransactionRoute } from "../modules/bankTransaction/transaction.route";
+import { CustomerRouter } from "../modules/customer/customer.route";
 
 const router = express.Router();
 
@@ -72,6 +73,10 @@ const moduleRoutes = [
   {
     path: "/transaction",
     route: TransactionRoute,
+  },
+  {
+    path: "/customer",
+    route: CustomerRouter,
   },
 ];
 

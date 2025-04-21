@@ -18,6 +18,7 @@ const raw_route_1 = require("../modules/rawMaterials/raw.route");
 const journal_route_1 = require("../modules/journal/journal.route");
 const bank_route_1 = require("../modules/bank/bank.route");
 const transaction_route_1 = require("../modules/bankTransaction/transaction.route");
+const customer_route_1 = require("../modules/customer/customer.route");
 const router = express_1.default.Router();
 const moduleRoutes = [
     {
@@ -75,6 +76,10 @@ const moduleRoutes = [
     {
         path: "/transaction",
         route: transaction_route_1.TransactionRoute,
+    },
+    {
+        path: "/customer",
+        route: customer_route_1.CustomerRouter,
     },
 ];
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

@@ -11,8 +11,6 @@ import {
   VoucherType,
 } from "@prisma/client";
 import prisma from "../../../shared/prisma";
-import { tuple } from "zod";
-import { Decimal } from "@prisma/client/runtime/library";
 
 const getAllVucher = async () => {
   const result = await prisma.journal.findMany();
@@ -38,6 +36,7 @@ const updateVoucherById = async () => {
 
 //Create Purchase Received Voucher
 const createPurchestReceivedIntoDB = async (payload: any) => {
+  console.log("payload", payload);
   const createPurchestVoucher = await prisma.$transaction(async (tx) => {
     const partyExists = await tx.party.findUnique({
       where: { id: payload.partyOrcustomerId, partyType: PartyType.SUPPLIER },
@@ -112,7 +111,6 @@ const createPurchestReceivedIntoDB = async (payload: any) => {
         return {
           itemType: item.itemType,
           productId: item.rawOrProductId,
-          paymentType: payload.paymentType,
           unitePrice: new Prisma.Decimal(item.unitPrice || 0),
           quantityAdd: new Prisma.Decimal(item.quantityAdd || 0),
           discount: new Prisma.Decimal(item?.discount || 0),
