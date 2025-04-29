@@ -42,13 +42,12 @@ const createAccountsItemtoDB = (payLoad) => __awaiter(void 0, void 0, void 0, fu
 const getAccountsItemFromDB = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
     let filerValue = {};
     if (payLoad) {
-        const filer = payLoad.split(",").map((ids) => {
-            return { pillerId: ids };
+        const filer = JSON.parse(payLoad).map((id) => {
+            return { accountMainPillerId: id };
         });
+        console.log(filer);
         filerValue = {
-            accountsPiler: {
-                OR: filer,
-            },
+            OR: filer,
         };
     }
     const result = yield prisma_1.default.accountsItem.findMany({

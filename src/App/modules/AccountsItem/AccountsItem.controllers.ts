@@ -16,7 +16,7 @@ const createAccountItem = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getAccountItem = catchAsync(async (req: Request, res: Response) => {
-  const query = req.query.pillerIds as string;
+  const query = req.query.ids as string;
 
   const result = await AccountItemService.getAccountsItemFromDB(query);
 

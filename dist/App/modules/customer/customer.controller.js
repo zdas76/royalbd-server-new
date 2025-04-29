@@ -18,12 +18,12 @@ const customer_service_1 = require("./customer.service");
 const sendResponse_1 = __importDefault(require("../../../shared/sendResponse"));
 const http_status_codes_1 = require("http-status-codes");
 const getCustomerById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const contactNumber = req.query.contactNumber;
+    const contactNumber = req.query.contact;
     const result = yield customer_service_1.CustomerService.getCustomerById(contactNumber);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
         success: true,
-        message: "Category create Successfully",
+        message: "contact Number get Successfully",
         data: result,
     });
 }));

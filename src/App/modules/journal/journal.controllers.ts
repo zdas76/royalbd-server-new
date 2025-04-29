@@ -21,12 +21,40 @@ const createSalseVoucher = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
-    message: "Purchase Received create successfully",
+    message: "Salse created successfully",
     data: result,
   });
 });
 
+const createReceiptdVoucher = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await JurnalService.createReceiptVoucher(req.body);
+
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "Receipt created successfully",
+      data: result,
+    });
+  }
+);
+
+const createPaymentdVoucher = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await JurnalService.createPaymentVoucher(req.body);
+
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "Payment created successfully",
+      data: result,
+    });
+  }
+);
+
 export const JournalControllers = {
   addPurcherReceived,
   createSalseVoucher,
+  createReceiptdVoucher,
+  createPaymentdVoucher,
 };

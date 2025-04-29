@@ -1,13 +1,14 @@
 import prisma from "../../../shared/prisma";
 
-const getCustomerById = async (contactNumber: string) => {
-  const result = await prisma.customer.findFirst({
+const getCustomerById = async (contact: string) => {
+  const result = await prisma.customer.findMany({
     where: {
       contactNumber: {
-        search: contactNumber,
+        contains: contact,
       },
     },
   });
+  return result;
 };
 
 export const CustomerService = {

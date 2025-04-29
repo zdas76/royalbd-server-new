@@ -7,5 +7,5 @@ exports.CustomerRouter = void 0;
 const express_1 = __importDefault(require("express"));
 const customer_controller_1 = require("./customer.controller");
 const route = express_1.default.Router();
-route.get("/contactNumber", customer_controller_1.CustomerControllers.getCustomerById);
+route.get("/", customer_controller_1.CustomerControllers.getCustomerById);
 exports.CustomerRouter = route;

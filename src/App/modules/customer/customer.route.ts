@@ -3,6 +3,6 @@ import { CustomerControllers } from "./customer.controller";
 
 const route = express.Router();
 
-route.get("/contactNumber", CustomerControllers.getCustomerById);
+route.get("/", CustomerControllers.getCustomerById);
 
 export const CustomerRouter = route;

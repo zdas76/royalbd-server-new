@@ -34,9 +34,8 @@ const updateVoucherById = () => __awaiter(void 0, void 0, void 0, function* () {
 });
 //Create Purchase Received Voucher
 const createPurchestReceivedIntoDB = (payload) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("payload", payload);
+    // console.log("payload", payload);
     const createPurchestVoucher = yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a;
         const partyExists = yield tx.party.findUnique({
             where: { id: payload.partyOrcustomerId, partyType: client_1.PartyType.SUPPLIER },
         });
@@ -60,17 +59,20 @@ const createPurchestReceivedIntoDB = (payload) => __awaiter(void 0, void 0, void
             },
         });
         // 2. create bank transaction
-        const BankTXData = (_a = payload === null || payload === void 0 ? void 0 : payload.creditItem) === null || _a === void 0 ? void 0 : _a.map((item) => {
-            if (item.bankId > 0 && item.bank_account !== null)
-                ({
-                    bankAccountId: item === null || item === void 0 ? void 0 : item.bank_account,
-                    creditAmount: new client_1.Prisma.Decimal((item === null || item === void 0 ? void 0 : item.creditAmount) || 0),
+        const BankTXData = [];
+        payload.creditItem.map((item) => __awaiter(void 0, void 0, void 0, function* () {
+            console.log("Item", item);
+            if (item.bankId !== null) {
+                BankTXData.push({
+                    transectionId: createTransactionInfo.id,
+                    bankAccountId: item.bankId,
+                    creditAmount: new client_1.Prisma.Decimal(item === null || item === void 0 ? void 0 : item.amount).toNumber(),
                 });
-        });
-        console.log("first", BankTXData);
-        if (!BankTXData == undefined && BankTXData.length > 0) {
+            }
+        }));
+        if (BankTXData) {
             yield tx.bankTransaction.createMany({
-                data: BankTXData.map((bankTx) => (Object.assign(Object.assign({}, bankTx), { transectionId: createTransactionInfo.id }))),
+                data: BankTXData,
             });
         }
         if (!Array.isArray(payload.items) || payload.items.length === 0) {
@@ -151,7 +153,7 @@ const createSalesVoucher = (payload) => __awaiter(void 0, void 0, void 0, functi
             throw new Error(`Invalid partyOrcustomerId: ${payload.partyOrcustomerId}. No matching Party or Customer found.`);
         }
         const customerExists = yield tx.customer.findFirst({
-            where: { contactNumber: payload === null || payload === void 0 ? void 0 : payload.customerId },
+            where: { contactNumber: payload === null || payload === void 0 ? void 0 : payload.contactNumber },
         });
         let transactionInfoData;
         if (customerExists) {
@@ -198,41 +200,40 @@ const createSalesVoucher = (payload) => __awaiter(void 0, void 0, void 0, functi
                 customer: true,
             },
         });
+        // 2. create bank transaction
+        const BankTXData = [];
+        payload.debitItem.map((item) => __awaiter(void 0, void 0, void 0, function* () {
+            if (item.bankAccountId) {
+                BankTXData.push({
+                    transectionId: createTransactionInfo.id,
+                    bankAccountId: item.bankAccountId,
+                    debitAmount: new client_1.Prisma.Decimal(item === null || item === void 0 ? void 0 : item.debitAmount).toNumber(),
+                });
+            }
+        }));
+        if (BankTXData) {
+            yield tx.bankTransaction.createMany({
+                data: BankTXData,
+            });
+        }
+        if (!Array.isArray(payload.salseItem) || payload.salseItem.length === 0) {
+            throw new Error("Invalid data: salseItem must be a non-empty array");
+        }
         // step 2: prepiar inventory data
-        const inventoryData = payload.salseItem.map((item) => {
-            if (item.itemType === "RAW_MATERIAL") {
-                return {
-                    itemType: item.itemType,
-                    rawId: item.rawOrProductId,
-                    unitePrice: new client_1.Prisma.Decimal(item.unitPrice || 0),
-                    quantityLess: new client_1.Prisma.Decimal(item.quantity || 0),
-                    discount: new client_1.Prisma.Decimal((item === null || item === void 0 ? void 0 : item.discount) || 0),
-                    Journal: {
-                        create: {
-                            transectionId: createTransactionInfo.id,
-                            creditAmount: new client_1.Prisma.Decimal(item.creditAmount),
-                            narration: item.narration || "",
-                        },
-                    },
-                };
-            }
-            else {
-                return {
-                    itemType: item.itemType,
-                    productId: item.rawOrProductId,
-                    unitePrice: new client_1.Prisma.Decimal(item.unitePrice || 0),
-                    quantityLess: new client_1.Prisma.Decimal(item.quantity || 0),
-                    discount: new client_1.Prisma.Decimal((item === null || item === void 0 ? void 0 : item.discount) || 0),
-                    Journal: {
-                        create: {
-                            transectionId: createTransactionInfo.id,
-                            creditAmount: new client_1.Prisma.Decimal(item.creditAmount),
-                            narration: item.narration || "",
-                        },
-                    },
-                };
-            }
-        });
+        const inventoryData = payload.salseItem.map((item) => ({
+            itemType: client_1.ItemType.PRODUCT,
+            productId: item.rawOrProductId,
+            unitePrice: new client_1.Prisma.Decimal(item.unitePrice || 0).toNumber(),
+            quantityLess: new client_1.Prisma.Decimal(item.quantity || 0).toNumber(),
+            discount: new client_1.Prisma.Decimal(item.discount || 0).toNumber(),
+            Journal: {
+                create: {
+                    transectionId: createTransactionInfo.id,
+                    creditAmount: new client_1.Prisma.Decimal(item.creditAmount).toNumber(),
+                    narration: item.narration || "",
+                },
+            },
+        }));
         //Step 3: Insert Inventory Records
         const createdItems = yield Promise.all(inventoryData.map((item) => tx.inventory.create({
             data: item,
@@ -246,10 +247,10 @@ const createSalesVoucher = (payload) => __awaiter(void 0, void 0, void 0, functi
         const journalDebitItems = payload.debitItem.map((item) => ({
             transectionId: createTransactionInfo.id,
             accountsItemId: item.accountsItemId,
-            debitAmount: new client_1.Prisma.Decimal(item.debitAmount || 0),
+            debitAmount: new client_1.Prisma.Decimal(item.debitAmount || 0).toNumber(),
             narration: (item === null || item === void 0 ? void 0 : item.narration) || "",
         }));
-        if (payload.discount && payload.discount > 0) {
+        if (payload.totalDiscount && payload.totalDiscount > 0) {
             const discountItem = yield tx.accountsItem.findFirst({
                 where: {
                     accountsItemName: {
@@ -257,11 +258,11 @@ const createSalesVoucher = (payload) => __awaiter(void 0, void 0, void 0, functi
                     },
                 },
             });
-            if (payload.discount && discountItem) {
+            if (payload.totalDiscount && discountItem) {
                 journalDebitItems.push({
                     transectionId: createTransactionInfo.id,
                     accountsItemId: parseInt(discountItem.id),
-                    debitAmount: new client_1.Prisma.Decimal(payload.discount),
+                    debitAmount: new client_1.Prisma.Decimal(payload.totalDiscount).toNumber(),
                     narration: "",
                 });
             }
@@ -277,10 +278,76 @@ const createSalesVoucher = (payload) => __awaiter(void 0, void 0, void 0, functi
 const createPaymentVoucher = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     console.log("first", payload);
     const createVoucher = yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
-        var _a;
         //check party
         const partyExists = yield tx.party.findFirst({
-            where: { id: payload.partyOrcustomerId },
+            where: { id: payload.partyId },
+        });
+        if (!partyExists) {
+            throw new Error(`Invalid partyOrcustomerId: ${payload.partyOrcustomerId}. No matching Party or Customer found.`);
+        }
+        const transactionInfoData = {
+            date: payload === null || payload === void 0 ? void 0 : payload.date,
+            voucherNo: payload.voucherNo,
+            partyType: partyExists.partyType || null,
+            partyId: partyExists.id || null,
+            voucherType: client_1.VoucherType.PAYMENT,
+        };
+        // step 1. create transaction entries
+        const createTransactionInfo = yield tx.transactionInfo.create({
+            data: transactionInfoData,
+        });
+        // 2. create bank transaction
+        const BankTXData = [];
+        payload.debitItem.map((item) => __awaiter(void 0, void 0, void 0, function* () {
+            if (item.bankId) {
+                BankTXData.push({
+                    transectionId: createTransactionInfo.id,
+                    bankAccountId: item.bankId,
+                    debitAmount: new client_1.Prisma.Decimal(item === null || item === void 0 ? void 0 : item.amount).toNumber(),
+                });
+            }
+        }));
+        if (BankTXData) {
+            yield tx.bankTransaction.createMany({
+                data: BankTXData,
+            });
+        }
+        if (!Array.isArray(payload.creditItem) || payload.creditItem.length === 0) {
+            throw new Error("Invalid data: salseItem must be a non-empty array");
+        }
+        const journalCreditItems = [];
+        payload.creditItem.map((item) => {
+            if (!item.bankId)
+                journalCreditItems.push({
+                    transectionId: createTransactionInfo.id,
+                    accountsItemId: item.accountsItemId,
+                    debitAmount: new client_1.Prisma.Decimal(item.amount || 0).toNumber(),
+                    narration: (item === null || item === void 0 ? void 0 : item.narration) || "",
+                });
+        });
+        if (!Array.isArray(payload.debitItem) || payload.debitItem.length === 0) {
+            throw new Error("Invalid data: salseItem must be a non-empty array");
+        }
+        // Step 7: Prepare Journal Credit Entries (For Payment Accounts)
+        const journalDebitItems = payload.debitItem.map((item) => ({
+            transectionId: createTransactionInfo.id,
+            accountsItemId: item.accountsItemId,
+            creditAmount: new client_1.Prisma.Decimal(item.amount || 0).toNumber(),
+            narration: (item === null || item === void 0 ? void 0 : item.narration) || "",
+        }));
+        const journalItems = [...journalDebitItems, ...journalCreditItems];
+        const createJournal = yield tx.journal.createMany({
+            data: journalItems,
+        });
+        return createJournal;
+    }));
+    return createVoucher;
+});
+const createReceiptVoucher = (payload) => __awaiter(void 0, void 0, void 0, function* () {
+    const createVoucher = yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+        //check party
+        const partyExists = yield tx.party.findFirst({
+            where: { id: payload.partyId },
         });
         if (!partyExists) {
             throw new Error(`Invalid partyOrcustomerId: ${payload.partyOrcustomerId}. No matching Party or Customer found.`);
@@ -297,57 +364,43 @@ const createPaymentVoucher = (payload) => __awaiter(void 0, void 0, void 0, func
             data: transactionInfoData,
         });
         // 2. create bank transaction
-        const BankTXData = (_a = payload === null || payload === void 0 ? void 0 : payload.creditItem) === null || _a === void 0 ? void 0 : _a.map((item) => {
-            if (item.bankId > 0 && item.bank_account !== null)
-                ({
-                    bankAccountId: item === null || item === void 0 ? void 0 : item.bank_account,
-                    creditAmount: new client_1.Prisma.Decimal((item === null || item === void 0 ? void 0 : item.creditAmount) || 0),
+        const BankTXData = [];
+        payload.debitItem.map((item) => __awaiter(void 0, void 0, void 0, function* () {
+            if (item.bankId) {
+                BankTXData.push({
+                    transectionId: createTransactionInfo.id,
+                    bankAccountId: item.bankId,
+                    debitAmount: new client_1.Prisma.Decimal(item === null || item === void 0 ? void 0 : item.amount).toNumber(),
                 });
-        });
-        console.log("first", BankTXData);
-        if (!BankTXData === undefined && BankTXData.length > 0) {
+            }
+        }));
+        if (BankTXData) {
             yield tx.bankTransaction.createMany({
-                data: BankTXData.map((bankTx) => (Object.assign(Object.assign({}, bankTx), { transectionId: createTransactionInfo.id }))),
+                data: BankTXData,
             });
         }
-    }));
-    return createVoucher;
-});
-const createReceiptVoucher = (payload) => __awaiter(void 0, void 0, void 0, function* () {
-    const createVoucher = yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
-        //check party
-        const partyExists = yield tx.party.findFirst({
-            where: { id: payload.partyOrcustomerId },
-        });
-        if (!partyExists) {
-            throw new Error(`Invalid partyOrcustomerId: ${payload.partyOrcustomerId}. No matching Party or Customer found.`);
+        if (!Array.isArray(payload.debitItem) || payload.debitItem.length === 0) {
+            throw new Error("Invalid data: salseItem must be a non-empty array");
         }
-        const transactionInfoData = {
-            date: payload === null || payload === void 0 ? void 0 : payload.date,
-            voucherNo: payload.voucherNo,
-            partyType: partyExists.partyType,
-            partyId: partyExists.id,
-            paymentType: client_1.PaymentType.PAID,
-            voucherType: client_1.VoucherType.SALES,
-        };
-        // step 1. create transaction entries
-        const createTransactionInfo = yield tx.transactionInfo.create({
-            data: transactionInfoData,
-            include: {
-                bankTransaction: true, // Fetch related bank transactions
-            },
+        const journalDebitItems = [];
+        payload.debitItem.map((item) => {
+            if (!item.bankId)
+                journalDebitItems.push({
+                    transectionId: createTransactionInfo.id,
+                    accountsItemId: item.accountsItemId,
+                    debitAmount: new client_1.Prisma.Decimal(item.amount || 0).toNumber(),
+                    narration: (item === null || item === void 0 ? void 0 : item.narration) || "",
+                });
         });
-        const journalDebitItems = payload.debitItem.map((item) => ({
-            transectionId: createTransactionInfo.id,
-            accountsItemId: item.accountsItemId,
-            debitAmount: new client_1.Prisma.Decimal(item.debitAmount || 0),
-            narration: (item === null || item === void 0 ? void 0 : item.narration) || "",
-        }));
+        console.log(journalDebitItems);
+        if (!Array.isArray(payload.creditItem) || payload.creditItem.length === 0) {
+            throw new Error("Invalid data: salseItem must be a non-empty array");
+        }
         // Step 7: Prepare Journal Credit Entries (For Payment Accounts)
         const journalCreditItems = payload.creditItem.map((item) => ({
             transectionId: createTransactionInfo.id,
             accountsItemId: item.accountsItemId,
-            creditAmount: new client_1.Prisma.Decimal(item.creditAmount || 0),
+            creditAmount: new client_1.Prisma.Decimal(item.amount || 0).toNumber(),
             narration: (item === null || item === void 0 ? void 0 : item.narration) || "",
         }));
         const journalItems = [...journalDebitItems, ...journalCreditItems];

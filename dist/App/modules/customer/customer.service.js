@@ -14,14 +14,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CustomerService = void 0;
 const prisma_1 = __importDefault(require("../../../shared/prisma"));
-const getCustomerById = (contactNumber) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield prisma_1.default.customer.findFirst({
+const getCustomerById = (contact) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield prisma_1.default.customer.findMany({
         where: {
             contactNumber: {
-                search: contactNumber,
+                contains: contact,
             },
         },
     });
+    return result;
 });
 exports.CustomerService = {
     getCustomerById,

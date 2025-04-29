@@ -27,7 +27,7 @@ const createAccountItem = (0, catchAsync_1.default)((req, res) => __awaiter(void
     });
 }));
 const getAccountItem = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const query = req.query.pillerIds;
+    const query = req.query.ids;
     const result = yield AccountsItem_service_1.AccountItemService.getAccountsItemFromDB(query);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
