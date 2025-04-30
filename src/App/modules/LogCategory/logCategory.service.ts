@@ -4,8 +4,9 @@ import AppError from "../../errors/AppError";
 import { LogCategory } from "@prisma/client";
 
 const createCategoryIntoDB = async (payLoad: LogCategory) => {
+  console.log(payLoad);
   //   const result = await prisma;
-  const isExisted = await prisma.logCategory.findFirst({
+  const isExisted = await prisma.logCategory.findUnique({
     where: {
       name: payLoad.name,
     },
@@ -38,7 +39,8 @@ const getLogCategoryById = async (id: number) => {
   return result;
 };
 
-const getUpdateLogCategoryById = async (id: number, payLoad: LogCategory) => {
+const updateLogCategoryById = async (id: number, payLoad: LogCategory) => {
+  console.log(payLoad);
   const result = await prisma.logCategory.update({
     where: {
       id,
@@ -53,5 +55,5 @@ export const LogCategoryService = {
   createCategoryIntoDB,
   getAllLogCategory,
   getLogCategoryById,
-  getUpdateLogCategoryById,
+  updateLogCategoryById,
 };

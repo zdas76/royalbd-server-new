@@ -16,15 +16,22 @@ exports.JurnalService = void 0;
 const client_1 = require("@prisma/client");
 const prisma_1 = __importDefault(require("../../../shared/prisma"));
 const getAllVucher = () => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield prisma_1.default.journal.findMany();
+    const result = yield prisma_1.default.transactionInfo.findMany({});
     return result;
 });
 const getVoucherById = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield prisma_1.default.journal.findFirst({
+    const result = yield prisma_1.default.transactionInfo.findFirst({
         where: { id },
         include: {
-            transactionInfo: true,
-            inventoryItem: true,
+            journal: {
+                include: {
+                    inventoryItem: true,
+                    accountsItem: true,
+                },
+            },
+            party: true,
+            customer: true,
+            bankTransaction: true,
         },
     });
     return result;
@@ -46,7 +53,7 @@ const createPurchestReceivedIntoDB = (payload) => __awaiter(void 0, void 0, void
             date: payload === null || payload === void 0 ? void 0 : payload.date,
             invoiceNo: payload.invoiceNo || null,
             voucherNo: payload.voucherNo,
-            partyType: client_1.PartyType.SUPPLIER,
+            partyType: partyExists.partyType,
             partyId: partyExists.id,
             paymentType: payload.paymentType,
             voucherType: client_1.VoucherType.PURCHASE,
@@ -113,6 +120,7 @@ const createPurchestReceivedIntoDB = (payload) => __awaiter(void 0, void 0, void
                 };
             }
         });
+        console.log("inventoryData", inventoryData);
         //Step 3: Insert Inventory Records
         const createdItems = yield Promise.all(inventoryData.map((item) => tx.inventory.create({
             data: item,

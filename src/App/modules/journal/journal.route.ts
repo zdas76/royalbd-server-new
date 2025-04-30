@@ -15,7 +15,7 @@ route.post("/journal", JournalControllers.addPurcherReceived);
 
 route.post("/contra", JournalControllers.addPurcherReceived);
 
-route.get("/");
+route.get("/", JournalControllers.getAllVoucher);
 
 route.get("/:id");
 

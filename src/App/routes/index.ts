@@ -14,6 +14,8 @@ import { JournalRoute } from "../modules/journal/journal.route";
 import { BankRoute } from "../modules/bank/bank.route";
 import { TransactionRoute } from "../modules/bankTransaction/transaction.route";
 import { CustomerRouter } from "../modules/customer/customer.route";
+import { LogCategoryRoute } from "../modules/LogCategory/logCategory.route";
+import { GradesRoutes } from "../modules/Grades/grades.route";
 
 const router = express.Router();
 
@@ -77,6 +79,14 @@ const moduleRoutes = [
   {
     path: "/customer",
     route: CustomerRouter,
+  },
+  {
+    path: "/log",
+    route: LogCategoryRoute,
+  },
+  {
+    path: "/grades",
+    route: GradesRoutes,
   },
 ];
 

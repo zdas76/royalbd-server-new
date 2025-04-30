@@ -12,60 +12,52 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.JournalControllers = void 0;
+exports.LogCategoryControllers = void 0;
 const catchAsync_1 = __importDefault(require("../../../shared/catchAsync"));
-const journal_service_1 = require("./journal.service");
+const logCategory_service_1 = require("./logCategory.service");
 const sendResponse_1 = __importDefault(require("../../../shared/sendResponse"));
 const http_status_codes_1 = require("http-status-codes");
-const getAllVoucher = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield journal_service_1.JurnalService.getAllVucher();
+const createLogCagetory = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield logCategory_service_1.LogCategoryService.createCategoryIntoDB(req.body);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
         success: true,
-        message: "Purchase Received create successfully",
+        message: "Log Category created successfully",
         data: result,
     });
 }));
-const addPurcherReceived = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield journal_service_1.JurnalService.createPurchestReceivedIntoDB(req.body);
+const getLogCagetory = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield logCategory_service_1.LogCategoryService.getAllLogCategory();
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
         success: true,
-        message: "Purchase Received create successfully",
+        message: "Log category retrived successfully",
         data: result,
     });
 }));
-const createSalseVoucher = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield journal_service_1.JurnalService.createSalesVoucher(req.body);
+const getLogCagetoryById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = Number(req.params.id);
+    const result = yield logCategory_service_1.LogCategoryService.getLogCategoryById(id);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
         success: true,
-        message: "Salse created successfully",
+        message: "Log category retrived successfully",
         data: result,
     });
 }));
-const createReceiptdVoucher = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield journal_service_1.JurnalService.createReceiptVoucher(req.body);
+const updateLogCagetoryById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = Number(req.params.id);
+    const result = yield logCategory_service_1.LogCategoryService.updateLogCategoryById(id, req.body);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
         success: true,
-        message: "Receipt created successfully",
+        message: "Log category retrived successfully",
         data: result,
     });
 }));
-const createPaymentdVoucher = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield journal_service_1.JurnalService.createPaymentVoucher(req.body);
-    (0, sendResponse_1.default)(res, {
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        message: "Payment created successfully",
-        data: result,
-    });
-}));
-exports.JournalControllers = {
-    addPurcherReceived,
-    createSalseVoucher,
-    createReceiptdVoucher,
-    createPaymentdVoucher,
-    getAllVoucher,
+exports.LogCategoryControllers = {
+    createLogCagetory,
+    getLogCagetory,
+    getLogCagetoryById,
+    updateLogCagetoryById,
 };

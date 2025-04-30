@@ -13,7 +13,7 @@ route.post("/received", journal_controllers_1.JournalControllers.createReceiptdV
 route.post("/payment", journal_controllers_1.JournalControllers.createPaymentdVoucher);
 route.post("/journal", journal_controllers_1.JournalControllers.addPurcherReceived);
 route.post("/contra", journal_controllers_1.JournalControllers.addPurcherReceived);
-route.get("/");
+route.get("/", journal_controllers_1.JournalControllers.getAllVoucher);
 route.get("/:id");
 route.put("/");
 route.delete("/");

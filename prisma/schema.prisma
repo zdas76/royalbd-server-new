@@ -38,8 +38,9 @@ model Party {
   isDeleted       Boolean           @default(false)
   TransactionInfo TransactionInfo[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  logOrder  LogOrder[]
 
   @@map("parties")
 }
@@ -267,12 +268,13 @@ model Journal {
 }
 
 model LogCategory {
-  id        Int         @id @default(autoincrement())
-  name      String      @unique @db.VarChar(50)
-  isDeleted Boolean     @default(false)
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-  logGrades LogGrades[]
+  id           Int            @id @default(autoincrement())
+  name         String         @unique @db.VarChar(50)
+  isDeleted    Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  logGrades    LogGrades[]
+  LogOrderItem LogOrderItem[]
 
   @@map("logcategories")
 }
@@ -284,11 +286,41 @@ model LogGrades {
   minRadius   Float       @db.Float()
   maxRadius   Float       @db.Float()
   unitePrice  Float
+  isDeleted   Boolean     @default(false)
   logCategory LogCategory @relation(fields: [categoryId], references: [id])
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
   @@map("logGrades")
+}
+
+model LogOrder {
+  id           Int            @id @default(autoincrement())
+  supplierId   Int
+  chalanNo     String         @db.VarChar(100)
+  date         DateTime
+  voucherNo    String         @db.VarChar(36)
+  party        Party          @relation(fields: [supplierId], references: [id])
+  logOrderItem LogOrderItem[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@map("log_orders")
+}
+
+model LogOrderItem {
+  id            Int         @id @default(autoincrement())
+  logOrderId    Int
+  logOrdr       LogOrder    @relation(fields: [logOrderId], references: [id])
+  logCategoryId Int
+  logCategory   LogCategory @relation(fields: [logCategoryId], references: [id])
+  radis         Float
+  height        Float
+  quantity_area Float
+  u_price       Float
+  amount        Float
+
+  @@map("log_Order_Items")
 }
 
 enum ItemType {

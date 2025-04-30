@@ -1,31 +1,32 @@
 import {
   AccountsItem,
-  BankTransaction,
-  Inventory,
   ItemType,
-  Journal,
   PartyType,
-  PaymentType,
   Prisma,
   TransactionInfo,
   VoucherType,
 } from "@prisma/client";
 import prisma from "../../../shared/prisma";
-import AppError from "../../errors/AppError";
-import { StatusCodes } from "http-status-codes";
 
 const getAllVucher = async () => {
-  const result = await prisma.journal.findMany();
+  const result = await prisma.transactionInfo.findMany({});
 
   return result;
 };
 
 const getVoucherById = async (id: number) => {
-  const result = await prisma.journal.findFirst({
+  const result = await prisma.transactionInfo.findFirst({
     where: { id },
     include: {
-      transactionInfo: true,
-      inventoryItem: true,
+      journal: {
+        include: {
+          inventoryItem: true,
+          accountsItem: true,
+        },
+      },
+      party: true,
+      customer: true,
+      bankTransaction: true,
     },
   });
 
