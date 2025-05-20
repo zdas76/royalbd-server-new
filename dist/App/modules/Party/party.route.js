@@ -10,6 +10,7 @@ const validationRequest_1 = __importDefault(require("../../middlewares/validatio
 const party_validation_1 = require("./party.validation");
 const route = express_1.default.Router();
 route.post("/", (0, validationRequest_1.default)(party_validation_1.partyValidaton.createParty), party_controllers_1.PartyControllers.createParty);
+route.get("/party-ledger");
 route.get("/", party_controllers_1.PartyControllers.getAllParty);
 route.get("/:id", party_controllers_1.PartyControllers.getPartyById);
 route.put("/:id", (0, validationRequest_1.default)(party_validation_1.partyValidaton.UpdateParty), party_controllers_1.PartyControllers.updatePartyById);

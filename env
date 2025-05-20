@@ -1,0 +1,19 @@
+
+
+# DATABASE_URL="mysql://royalbdgroup_zdas76:Bangladesh1971@131.153.48.202:3306/royalbdgroup_node_server"
+
+# DATABASE_URL="mysql://mymendba_user:Bangladesh1971@82.180.144.207:3306/mymendba_royalbd"
+
+DATABASE_URL="mysql://zdas76:126431@localhost:3306/royalbdgroup_node_server"
+
+PORT=5000
+
+JWT_SECRET= bangladesh
+EXPIRES_IN= '3d'
+REFRESH_TOKEN_SECRET= bangladesh
+REFRESH_TOKEN_EXPIRES_IN = '3d'
+RESET_PASS_TOKEN= bangladesh
+RESET_PASS_TOKEN_EXPIRES_IN= '1y'
+NODE_ENV=development
+
+HASHPSSWORD_ROUND= '12'

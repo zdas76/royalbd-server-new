@@ -68,7 +68,6 @@ const createPurchestReceivedIntoDB = (payload) => __awaiter(void 0, void 0, void
         // 2. create bank transaction
         const BankTXData = [];
         payload.creditItem.map((item) => __awaiter(void 0, void 0, void 0, function* () {
-            console.log("Item", item);
             if (item.bankId !== null) {
                 BankTXData.push({
                     transectionId: createTransactionInfo.id,
@@ -120,7 +119,6 @@ const createPurchestReceivedIntoDB = (payload) => __awaiter(void 0, void 0, void
                 };
             }
         });
-        console.log("inventoryData", inventoryData);
         //Step 3: Insert Inventory Records
         const createdItems = yield Promise.all(inventoryData.map((item) => tx.inventory.create({
             data: item,
@@ -284,7 +282,6 @@ const createSalesVoucher = (payload) => __awaiter(void 0, void 0, void 0, functi
 });
 // Create Payment Voucher
 const createPaymentVoucher = (payload) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log("first", payload);
     const createVoucher = yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
         //check party
         const partyExists = yield tx.party.findFirst({
@@ -329,7 +326,7 @@ const createPaymentVoucher = (payload) => __awaiter(void 0, void 0, void 0, func
                 journalCreditItems.push({
                     transectionId: createTransactionInfo.id,
                     accountsItemId: item.accountsItemId,
-                    debitAmount: new client_1.Prisma.Decimal(item.amount || 0).toNumber(),
+                    creditAmount: new client_1.Prisma.Decimal(item.amount || 0).toNumber(),
                     narration: (item === null || item === void 0 ? void 0 : item.narration) || "",
                 });
         });
@@ -340,7 +337,7 @@ const createPaymentVoucher = (payload) => __awaiter(void 0, void 0, void 0, func
         const journalDebitItems = payload.debitItem.map((item) => ({
             transectionId: createTransactionInfo.id,
             accountsItemId: item.accountsItemId,
-            creditAmount: new client_1.Prisma.Decimal(item.amount || 0).toNumber(),
+            debitAmount: new client_1.Prisma.Decimal(item.amount || 0).toNumber(),
             narration: (item === null || item === void 0 ? void 0 : item.narration) || "",
         }));
         const journalItems = [...journalDebitItems, ...journalCreditItems];

@@ -16,6 +16,8 @@ import { TransactionRoute } from "../modules/bankTransaction/transaction.route";
 import { CustomerRouter } from "../modules/customer/customer.route";
 import { LogCategoryRoute } from "../modules/LogCategory/logCategory.route";
 import { GradesRoutes } from "../modules/Grades/grades.route";
+import { GradesOrderRouter } from "../modules/GradesOrders/gOrder.route";
+import { createProductRoute } from "../modules/createProduce/createProduct.route";
 
 const router = express.Router();
 
@@ -87,6 +89,14 @@ const moduleRoutes = [
   {
     path: "/grades",
     route: GradesRoutes,
+  },
+  {
+    path: "/gorder",
+    route: GradesOrderRouter,
+  },
+  {
+    path: "/create-product",
+    route: createProductRoute,
   },
 ];
 

@@ -11,6 +11,8 @@ route.post(
   PartyControllers.createParty
 );
 
+route.get("/party-ledger");
+
 route.get("/", PartyControllers.getAllParty);
 
 route.get("/:id", PartyControllers.getPartyById);

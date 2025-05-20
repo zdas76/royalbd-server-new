@@ -10,7 +10,7 @@ datasource db {
 }
 
 model Employee {
-  id           Int        @id @unique @default(autoincrement())
+  id           Int        @id @default(autoincrement())
   email        String     @unique @db.VarChar(30)
   password     String
   name         String     @db.VarChar(50)
@@ -22,10 +22,10 @@ model Employee {
   mobile       String     @db.VarChar(14)
   role         UserRole   @default(EMPLOYEE)
   status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  @@index([email])
   @@map("employees")
 }
 
@@ -37,46 +37,44 @@ model Party {
   partyType       PartyType
   isDeleted       Boolean           @default(false)
   TransactionInfo TransactionInfo[]
+  logOrder        LogOrder[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  logOrder  LogOrder[]
-
+  @@index([name])
   @@map("parties")
 }
 
 model Category {
-  id           Int           @id @unique @default(autoincrement())
+  id           Int           @id @default(autoincrement())
   categoryName String        @unique @db.VarChar(200)
   SubCategory  SubCategory[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 
   @@map("categoris")
 }
 
 model SubCategory {
-  id              Int      @id @unique @default(autoincrement())
-  subCategoryName String   @unique @db.VarChar(200)
+  id              Int       @id @default(autoincrement())
+  subCategoryName String    @unique @db.VarChar(200)
   categoryId      Int
-  category        Category @relation(fields: [categoryId], references: [id])
+  category        Category  @relation(fields: [categoryId], references: [id])
+  Product         Product[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  Product   Product[]
-
+  @@index([categoryId])
   @@map("sub_categoris")
 }
 
 model AccountMainPiller {
-  id           Int            @id @unique @default(autoincrement())
+  id           Int            @id @default(autoincrement())
   pillerName   String
   pillerId     String         @unique @db.VarChar(2)
   AccountsItem AccountsItem[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 
   @@map("account_pillers")
 }
@@ -84,21 +82,19 @@ model AccountMainPiller {
 model AccountsItem {
   id                  Int               @id @default(autoincrement())
   accountsItemName    String
-  accountsPiler       AccountMainPiller @relation(fields: [accountMainPillerId], references: [pillerId])
   accountMainPillerId String            @db.VarChar(2)
   accountsItemId      String            @db.VarChar(4)
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  journal   Journal[]
+  journal             Journal[]
+  accountsPiler       AccountMainPiller @relation(fields: [accountMainPillerId], references: [pillerId])
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
 
   @@map("account_items")
 }
 
 model Unit {
-  id   Int    @id @default(autoincrement())
-  name String @db.VarChar(20)
-
+  id        Int      @id @default(autoincrement())
+  name      String   @db.VarChar(20)
   createdAt DateTime @default(now())
   updateAt  DateTime @updatedAt
 
@@ -116,25 +112,25 @@ model Product {
   itemType      ItemType    @default(PRODUCT)
   isDeleted     Boolean     @default(false)
   status        Status      @default(ACTIVE)
+  Inventory     Inventory[]
+  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
   createdAt     DateTime    @default(now())
   updateAt      DateTime    @updatedAt
-  subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
-  Inventory     Inventory[]
 
+  @@index([subCategoryId, name])
   @@map("products")
 }
 
 model RawMaterial {
-  id          Int      @id @default(autoincrement())
-  name        String   @db.VarChar(50)
-  description String?  @db.VarChar(250)
-  itemType    ItemType @default(RAW_MATERIAL)
-  isDeleted   Boolean  @default(false)
-  status      Status   @default(ACTIVE)
-
-  createdAt DateTime    @default(now())
-  updateAt  DateTime    @updatedAt
-  Inventory Inventory[]
+  id          Int         @id @default(autoincrement())
+  name        String      @db.VarChar(50)
+  description String?     @db.VarChar(250)
+  itemType    ItemType    @default(RAW_MATERIAL)
+  isDeleted   Boolean     @default(false)
+  status      Status      @default(ACTIVE)
+  Inventory   Inventory[]
+  createdAt   DateTime    @default(now())
+  updateAt    DateTime    @updatedAt
 
   @@map("raw_materials")
 }
@@ -146,22 +142,21 @@ model ClosingStock {
   closingQuantity Int
   closingPrice    Decimal     @default(0.00) @db.Decimal(10, 2)
   Inventory       Inventory[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  @@index([date])
   @@map("closing_stock")
 }
 
 model Customer {
-  id            Int      @id @default(autoincrement())
-  name          String?
-  contactNumber String   @unique
-  address       String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
+  id              Int               @id @default(autoincrement())
+  name            String?
+  contactNumber   String            @unique
+  address         String?
   TransactionInfo TransactionInfo[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
   @@map("customers")
 }
@@ -176,6 +171,7 @@ model BankAccount {
   updatedAt       DateTime          @updatedAt
   bankTransaction BankTransaction[]
 
+  @@unique([bankName, accountNumber])
   @@map("bank_accounts")
 }
 
@@ -188,6 +184,7 @@ model BankClosing {
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
+  @@index([date])
   @@map("bank_closing")
 }
 
@@ -216,111 +213,146 @@ model TransactionInfo {
   voucherType     VoucherType
   paymentType     PaymentType?
   bankTransaction BankTransaction[]
+  journal         Journal[]
+  party           Party?            @relation(fields: [partyId], references: [id])
+  customer        Customer?         @relation(fields: [customerId], references: [id])
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
 
-  party    Party?    @relation(fields: [partyId], references: [id])
-  customer Customer? @relation(fields: [customerId], references: [id])
-  journal  Journal[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  @@index([date, voucherNo, voucherType])
   @@map("transaction_info")
 }
 
 model Inventory {
-  id             Int           @id @default(autoincrement())
-  itemType       ItemType
-  productId      Int?
-  rawId          Int?
-  unitePrice     Decimal       @default(0.00) @db.Decimal(10, 2)
-  quantityAdd    Decimal?      @default(0.00) @db.Decimal(10, 2)
-  quantityLess   Decimal?      @default(0.00) @db.Decimal(10, 2)
-  discount       Decimal?      @default(0.00) @db.Decimal(10, 2)
-  closingStockId Int?
-  ClosingStock   ClosingStock? @relation(fields: [closingStockId], references: [id])
-  raWMaterial    RawMaterial?  @relation(fields: [rawId], references: [id])
-  product        Product?      @relation(fields: [productId], references: [id])
-  Journal        Journal[]
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  id              Int            @id @default(autoincrement())
+  itemType        ItemType
+  productId       Int?
+  rawId           Int?
+  createProductId Int?
+  unitePrice      Float          @default(0.00)
+  quantityAdd     Float?         @default(0.00)
+  quantityLess    Float?         @default(0.00)
+  discount        Float?         @default(0.00)
+  closingStockId  Int?
+  Journal         Journal[]
+  product         Product?       @relation(fields: [productId], references: [id])
+  ClosingStock    ClosingStock?  @relation(fields: [closingStockId], references: [id])
+  raWMaterial     RawMaterial?   @relation(fields: [rawId], references: [id])
+  CreateProduct   CreateProduct? @relation(fields: [createProductId], references: [id])
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
+  @@index([productId, rawId, closingStockId, createProductId])
   @@map("inventories")
 }
 
 model Journal {
-  id              Int         @id @default(autoincrement())
-  transectionId   Int
+  id              Int              @id @default(autoincrement())
+  transectionId   Int?
   accountsItemId  Int?
   inventoryItemId Int?
-  creditAmount    Decimal?    @default(0.00) @db.Decimal(10, 2)
-  debitAmount     Decimal?    @default(0.00) @db.Decimal(10, 2)
+  logOrderId      Int?
+  createProductId Int?
+  creditAmount    Decimal?         @default(0.00) @db.Decimal(10, 2)
+  debitAmount     Decimal?         @default(0.00) @db.Decimal(10, 2)
   narration       String?
-  jurnaStatus     JurnaStatus @default(UNCHECKED)
-
-  transactionInfo TransactionInfo @relation(fields: [transectionId], references: [id])
-  accountsItem    AccountsItem?   @relation(fields: [accountsItemId], references: [id])
-  inventoryItem   Inventory?      @relation(fields: [inventoryItemId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  jurnaStatus     JurnaStatus      @default(UNCHECKED)
+  LogOrder        LogOrder?        @relation(fields: [logOrderId], references: [id])
+  transactionInfo TransactionInfo? @relation(fields: [transectionId], references: [id])
+  accountsItem    AccountsItem?    @relation(fields: [accountsItemId], references: [id])
+  inventoryItem   Inventory?       @relation(fields: [inventoryItemId], references: [id])
+  CreateProduct   CreateProduct?   @relation(fields: [createProductId], references: [id])
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 
   @@map("journals")
 }
 
 model LogCategory {
-  id           Int            @id @default(autoincrement())
-  name         String         @unique @db.VarChar(50)
-  isDeleted    Boolean        @default(false)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  logGrades    LogGrades[]
-  LogOrderItem LogOrderItem[]
+  id        Int         @id @default(autoincrement())
+  name      String      @unique @db.VarChar(50)
+  isDeleted Boolean     @default(false)
+  logGrades LogGrades[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 
   @@map("logcategories")
 }
 
 model LogGrades {
-  id          Int         @id @default(autoincrement())
-  categoryId  Int
-  gradeName   String      @db.VarChar(50)
-  minRadius   Float       @db.Float()
-  maxRadius   Float       @db.Float()
-  unitePrice  Float
-  isDeleted   Boolean     @default(false)
-  logCategory LogCategory @relation(fields: [categoryId], references: [id])
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  id              Int              @id @default(autoincrement())
+  categoryId      Int
+  gradeName       String           @db.VarChar(50)
+  minRadius       Float            @db.Float()
+  maxRadius       Float            @db.Float()
+  unitePrice      Float
+  isDeleted       Boolean          @default(false)
+  logOrderItem    LogOrderItem[]
+  logCategory     LogCategory      @relation(fields: [categoryId], references: [id])
+  logGradeClosing LogGradeClosing?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 
+  @@index([categoryId])
   @@map("logGrades")
 }
 
-model LogOrder {
-  id           Int            @id @default(autoincrement())
-  supplierId   Int
-  chalanNo     String         @db.VarChar(100)
-  date         DateTime
-  voucherNo    String         @db.VarChar(36)
-  party        Party          @relation(fields: [supplierId], references: [id])
-  logOrderItem LogOrderItem[]
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+model LogGradeClosing {
+  id            Int        @id @default(autoincrement())
+  date          DateTime   @default(now())
+  logGradesId   Int        @unique
+  closingArea   Float      @default(0.00)
+  closingAmount Float      @default(0.00)
+  logGrades     LogGrades? @relation(fields: [logGradesId], references: [id])
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
+  @@index([date])
+  @@map("log_grade_closing")
+}
+
+model LogOrder {
+  id         Int            @id @default(autoincrement())
+  supplierId Int
+  chalanNo   String?        @db.VarChar(100)
+  date       DateTime
+  voucherNo  String         @unique @default("00") @db.VarChar(36)
+  orderItem  LogOrderItem[]
+  Journal    Journal[]
+  party      Party          @relation(fields: [supplierId], references: [id])
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@index([supplierId, date, voucherNo])
   @@map("log_orders")
 }
 
 model LogOrderItem {
-  id            Int         @id @default(autoincrement())
-  logOrderId    Int
-  logOrdr       LogOrder    @relation(fields: [logOrderId], references: [id])
-  logCategoryId Int
-  logCategory   LogCategory @relation(fields: [logCategoryId], references: [id])
-  radis         Float
-  height        Float
-  quantity_area Float
-  u_price       Float
-  amount        Float
+  id           Int        @id @default(autoincrement())
+  logOrderId   Int?
+  logGradesId  Int?
+  radis        Float?
+  height       Float?
+  addQuantity  Float?
+  lessQuantity Float?
+  u_price      Float
+  debitAmount  Float?
+  craditAmount Float?
+  logGrades    LogGrades? @relation(fields: [logGradesId], references: [id])
+  logOrder     LogOrder?  @relation(fields: [logOrderId], references: [id])
 
+  @@index([logOrderId, logGradesId])
   @@map("log_Order_Items")
+}
+
+model CreateProduct {
+  id        Int         @id @default(autoincrement())
+  voucherNo String      @unique
+  date      DateTime
+  journal   Journal[]
+  inventory Inventory[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 }
 
 enum ItemType {

@@ -6,6 +6,20 @@ import { Request, Response } from "express";
 import pick from "../../../shared/pick";
 import { partyfiltersFields } from "./party.constant";
 
+const getPartyLedger = catchAsync(async (req: Request, res: Response) => {
+  const filters = pick(req.query, partyfiltersFields);
+  const paginat = pick(req.query, ["page", "limit", "sortBy", "sortOrder"]);
+
+  const result = await PartyService.getPertyLedgerInfo(filters, paginat);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Parties retrived Successfully",
+    data: result,
+  });
+});
+
 const createParty = catchAsync(async (req: Request, res: Response) => {
   const result = await PartyService.createParty(req.body);
 

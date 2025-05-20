@@ -9,6 +9,6 @@ router.get("/", CategoryControllers.getCategory);
 
 router.get("/:id", CategoryControllers.getCategory);
 
-router.patch("/", CategoryControllers.updateCategory);
+router.put("/", CategoryControllers.updateCategory);
 
 export const CategoryRouter = router;

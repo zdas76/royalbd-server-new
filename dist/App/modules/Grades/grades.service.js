@@ -39,7 +39,11 @@ const crateGradeIntoDB = (payLoad) => __awaiter(void 0, void 0, void 0, function
     return result;
 });
 const getGradeFromToDB = () => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield prisma_1.default.logGrades.findMany({});
+    const result = yield prisma_1.default.logGrades.findMany({
+        include: {
+            logCategory: true,
+        },
+    });
     return result;
 });
 const getGradeFromToDBById = (id) => __awaiter(void 0, void 0, void 0, function* () {

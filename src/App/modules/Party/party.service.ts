@@ -6,6 +6,55 @@ import { IPaginationOptions } from "../../interfaces/pagination";
 import { PartySearchAbleFields } from "./party.constant";
 import AppError from "../../errors/AppError";
 
+const getPertyLedgerInfo = async (params: any, paginat: IPaginationOptions) => {
+  const { page, limit, skip } = paginationHelper.Pagination(paginat);
+
+  const { searchTerm, ...filterData } = params;
+
+  const andCondition: Prisma.PartyWhereInput[] = [];
+
+  if (params.searchTerm) {
+    andCondition.push({
+      OR: PartySearchAbleFields.map((field) => ({
+        [field]: {
+          contains: params.searchTerm,
+          mode: "insensitive",
+        },
+      })),
+    });
+  }
+
+  if (Object.keys(filterData).length > 0) {
+    andCondition.push({
+      AND: Object.keys(filterData).map((key) => ({
+        [key]: {
+          equals: filterData[key],
+        },
+      })),
+    });
+  }
+
+  const wehreConditions: Prisma.PartyWhereInput =
+    andCondition.length > 0 ? { AND: andCondition } : { isDeleted: false };
+
+  const result = await prisma.transactionInfo.findMany({
+    where: {},
+    // where: wehreConditions,
+    // skip,
+    // take: limit,
+    // orderBy:
+    //   paginat.sortBy && paginat.sortOrder
+    //     ? {
+    //         [paginat.sortBy]: paginat.sortOrder,
+    //       }
+    //     : {
+    //         createdAt: "desc",
+    //       },
+  });
+
+  return result;
+};
+
 const createParty = async (payload: Party) => {
   const isExist = await prisma.party.findFirst({
     where: {
@@ -132,6 +181,7 @@ const deletePartyById = async (id: number) => {
 };
 
 export const PartyService = {
+  getPertyLedgerInfo,
   createParty,
   getAllParty,
   getPartyById,

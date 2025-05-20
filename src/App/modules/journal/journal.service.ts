@@ -77,7 +77,6 @@ const createPurchestReceivedIntoDB = async (payload: any) => {
     }[] = [];
 
     payload.creditItem.map(async (item: any) => {
-      console.log("Item", item);
       if (item.bankId !== null) {
         BankTXData.push({
           transectionId: createTransactionInfo.id,
@@ -131,7 +130,6 @@ const createPurchestReceivedIntoDB = async (payload: any) => {
         };
       }
     });
-    console.log("inventoryData", inventoryData);
 
     //Step 3: Insert Inventory Records
 
@@ -335,8 +333,6 @@ const createSalesVoucher = async (payload: any) => {
 
 // Create Payment Voucher
 const createPaymentVoucher = async (payload: any) => {
-  console.log("first", payload);
-
   const createVoucher = await prisma.$transaction(async (tx) => {
     //check party
     const partyExists = await tx.party.findFirst({
@@ -392,7 +388,7 @@ const createPaymentVoucher = async (payload: any) => {
     const journalCreditItems: {
       transectionId: number;
       accountsItemId: number;
-      debitAmount: number;
+      creditAmount: number;
       narration: string;
     }[] = [];
 
@@ -401,7 +397,7 @@ const createPaymentVoucher = async (payload: any) => {
         journalCreditItems.push({
           transectionId: createTransactionInfo.id,
           accountsItemId: item.accountsItemId,
-          debitAmount: new Prisma.Decimal(item.amount || 0).toNumber(),
+          creditAmount: new Prisma.Decimal(item.amount || 0).toNumber(),
           narration: item?.narration || "",
         });
     });
@@ -414,7 +410,7 @@ const createPaymentVoucher = async (payload: any) => {
     const journalDebitItems = payload.debitItem.map((item: any) => ({
       transectionId: createTransactionInfo.id,
       accountsItemId: item.accountsItemId,
-      creditAmount: new Prisma.Decimal(item.amount || 0).toNumber(),
+      debitAmount: new Prisma.Decimal(item.amount || 0).toNumber(),
       narration: item?.narration || "",
     }));
 

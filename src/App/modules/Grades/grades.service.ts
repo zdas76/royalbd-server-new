@@ -34,7 +34,11 @@ const crateGradeIntoDB = async (payLoad: LogGrades) => {
 };
 
 const getGradeFromToDB = async () => {
-  const result = await prisma.logGrades.findMany({});
+  const result = await prisma.logGrades.findMany({
+    include: {
+      logCategory: true,
+    },
+  });
   return result;
 };
 

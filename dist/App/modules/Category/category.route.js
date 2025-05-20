@@ -10,5 +10,5 @@ const router = express_1.default.Router();
 router.post("/", category_controllers_1.CategoryControllers.createCategory);
 router.get("/", category_controllers_1.CategoryControllers.getCategory);
 router.get("/:id", category_controllers_1.CategoryControllers.getCategory);
-router.patch("/", category_controllers_1.CategoryControllers.updateCategory);
+router.put("/", category_controllers_1.CategoryControllers.updateCategory);
 exports.CategoryRouter = router;
