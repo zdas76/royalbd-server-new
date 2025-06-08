@@ -50,7 +50,7 @@ const updateLogCategoryById = async (id: number, payLoad: LogCategory) => {
   return result;
 };
 
-export const LogCategoryService = {
+export const LogToRawService = {
   createCategoryIntoDB,
   getAllLogCategory,
   getLogCategoryById,

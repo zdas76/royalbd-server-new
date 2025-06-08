@@ -102,13 +102,13 @@ const createPurchestReceivedIntoDB = async (payload: any) => {
         return {
           itemType: item.itemType,
           rawId: item.rawOrProductId,
-          unitePrice: new Prisma.Decimal(item.unitPrice || 0),
-          quantityAdd: new Prisma.Decimal(item.quantityAdd || 0),
-          discount: new Prisma.Decimal(item?.discount || 0),
+          unitePrice: item.unitPrice || 0,
+          quantityAdd: item.quantityAdd || 0,
+          discount: item?.discount || 0,
           Journal: {
             create: {
               transectionId: createTransactionInfo.id,
-              debitAmount: new Prisma.Decimal(item.debitAmount),
+              debitAmount: item.debitAmount,
               narration: item.narration || "",
             },
           },
@@ -117,9 +117,9 @@ const createPurchestReceivedIntoDB = async (payload: any) => {
         return {
           itemType: item.itemType,
           productId: item.rawOrProductId,
-          unitePrice: new Prisma.Decimal(item.unitPrice || 0),
-          quantityAdd: new Prisma.Decimal(item.quantityAdd || 0),
-          discount: new Prisma.Decimal(item?.discount || 0),
+          unitePrice: item.unitPrice || 0,
+          quantityAdd: item.quantityAdd || 0,
+          discount: item?.discount || 0,
           Journal: {
             create: {
               transectionId: createTransactionInfo.id,

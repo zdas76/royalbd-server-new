@@ -33,34 +33,41 @@ const createGradesOrder = (payLoad) => __awaiter(void 0, void 0, void 0, functio
             throw new AppError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "Supplier not found");
         }
         const isLogGradesExisted = yield payLoad.logOrderItem.map((item) => __awaiter(void 0, void 0, void 0, function* () {
-            if (item.logGradesId && item.addQuantity) {
+            if (item.logGradeId && item.quantity) {
                 return yield prisma_1.default.logGrades.findFirst({
-                    where: { id: item.logGradesId },
+                    where: { id: item.logGradeId },
                 });
             }
         }));
         if (!isLogGradesExisted) {
-            throw new AppError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "Log grades item not found");
+            throw new AppError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "Log grades item is not found");
         }
         const orderData = {
             supplierId: payLoad.supplierId,
             chalanNo: payLoad.chalanNo || null,
             date: payLoad.date,
-            voucherNo: payLoad.voucherNo,
+            voucherNo: payLoad.voucherNo || null,
+            addQuantity: payLoad.logOrderTotalQuantity,
+            Journal: {
+                create: {
+                    debitAmount: payLoad.logOrderTotalAmount,
+                    narration: payLoad.narration || "",
+                },
+            },
         };
         const orderInfo = yield tx.logOrder.create({
             data: orderData,
         });
         const orderItem = payLoad.logOrderItem.map((item) => ({
             logOrderId: orderInfo.id,
-            logGradesId: item.logGradesId,
+            logGradeId: item.logGradeId,
             radis: item.radis,
             height: item.height,
-            addQuantity: item.addQuantity,
+            quantity: item.quantity,
             u_price: item.u_price,
-            debitAmount: item.debitAmount,
+            amount: item.amount,
         }));
-        const creadeOrderItem = yield tx.logOrderItem.createMany({
+        yield tx.logOrderItem.createMany({
             data: orderItem,
         });
         const debitJournalItem = payLoad.debitItem.map((item) => ({

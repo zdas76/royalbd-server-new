@@ -13,7 +13,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.BankAccountService = void 0;
-const client_1 = require("@prisma/client");
 const prisma_1 = __importDefault(require("../../../shared/prisma"));
 const AppError_1 = __importDefault(require("../../errors/AppError"));
 const http_status_codes_1 = require("http-status-codes");
@@ -32,35 +31,28 @@ const createBankAccount = (payload) => __awaiter(void 0, void 0, void 0, functio
         bankName: payload.bankName,
         branceName: payload.branceName,
         accountNumber: payload.accountNumber,
-        bankClosing: {
-            create: {
-                date: (payload === null || payload === void 0 ? void 0 : payload.date) || new Date(),
-                closingAmount: new client_1.Prisma.Decimal((payload === null || payload === void 0 ? void 0 : payload.amount) || 0),
-            },
-        },
     };
     const result = yield prisma_1.default.bankAccount.create({
         data: accountData,
-        include: {
-            bankClosing: true,
-        },
     });
+    if (payload.initialBalance) {
+        yield prisma_1.default.bankTransaction.create({
+            data: {
+                bankAccountId: result.id,
+                date: payload.date,
+                debitAmount: payload.initialBalance,
+            },
+        });
+    }
     return result;
 });
 const getAllBankAccount = () => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield prisma_1.default.bankAccount.findMany({
-        include: {
-            bankClosing: true,
-        },
-    });
+    const result = yield prisma_1.default.bankAccount.findMany({});
     return result;
 });
 const getBankAccountById = (id) => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield prisma_1.default.bankAccount.findFirst({
         where: { id },
-        include: {
-            bankClosing: true,
-        },
     });
     return result;
 });

@@ -1,9 +1,10 @@
-import { RawMaterial } from "@prisma/client";
+import { ItemType, RawMaterial } from "@prisma/client";
 import prisma from "../../../shared/prisma";
 import AppError from "../../errors/AppError";
 import { StatusCodes } from "http-status-codes";
+import { TrawMaterial } from "./raw.types";
 
-const createRawMaterial = async (payload: RawMaterial) => {
+const createRawMaterial = async (payload: TrawMaterial) => {
   const isExist = await prisma.rawMaterial.findFirst({
     where: {
       name: payload.name,
@@ -17,6 +18,24 @@ const createRawMaterial = async (payload: RawMaterial) => {
   const result = await prisma.rawMaterial.create({
     data: payload,
   });
+
+  if (payload.initialStock) {
+    await prisma.inventory.create({
+      data: {
+        rawId: result.id,
+        itemType: ItemType.RAW_MATERIAL,
+        unitePrice: payload.initialStock.uniterPrice,
+        quantityAdd: payload.initialStock.amount,
+        date: payload.initialStock.date,
+        Journal: {
+          create: {
+            debitAmount: payload.initialStock.amount,
+            narration: "Initial raw material balance",
+          },
+        },
+      },
+    });
+  }
 
   return result;
 };

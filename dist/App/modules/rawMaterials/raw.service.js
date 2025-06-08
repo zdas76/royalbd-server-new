@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RowMaterialsService = void 0;
+const client_1 = require("@prisma/client");
 const prisma_1 = __importDefault(require("../../../shared/prisma"));
 const AppError_1 = __importDefault(require("../../errors/AppError"));
 const http_status_codes_1 = require("http-status-codes");
@@ -28,6 +29,23 @@ const createRawMaterial = (payload) => __awaiter(void 0, void 0, void 0, functio
     const result = yield prisma_1.default.rawMaterial.create({
         data: payload,
     });
+    if (payload.initialStock) {
+        yield prisma_1.default.inventory.create({
+            data: {
+                rawId: result.id,
+                itemType: client_1.ItemType.RAW_MATERIAL,
+                unitePrice: payload.initialStock.uniterPrice,
+                quantityAdd: payload.initialStock.quantityAdd,
+                date: payload.initialStock.date,
+                Journal: {
+                    create: {
+                        debitAmount: payload.initialStock.quantityAdd,
+                        narration: "Initial raw material balance",
+                    },
+                },
+            },
+        });
+    }
     return result;
 });
 const getAllRawMaterial = () => __awaiter(void 0, void 0, void 0, function* () {

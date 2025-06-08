@@ -90,13 +90,13 @@ const createPurchestReceivedIntoDB = (payload) => __awaiter(void 0, void 0, void
                 return {
                     itemType: item.itemType,
                     rawId: item.rawOrProductId,
-                    unitePrice: new client_1.Prisma.Decimal(item.unitPrice || 0),
-                    quantityAdd: new client_1.Prisma.Decimal(item.quantityAdd || 0),
-                    discount: new client_1.Prisma.Decimal((item === null || item === void 0 ? void 0 : item.discount) || 0),
+                    unitePrice: item.unitPrice || 0,
+                    quantityAdd: item.quantityAdd || 0,
+                    discount: (item === null || item === void 0 ? void 0 : item.discount) || 0,
                     Journal: {
                         create: {
                             transectionId: createTransactionInfo.id,
-                            debitAmount: new client_1.Prisma.Decimal(item.debitAmount),
+                            debitAmount: item.debitAmount,
                             narration: item.narration || "",
                         },
                     },
@@ -106,9 +106,9 @@ const createPurchestReceivedIntoDB = (payload) => __awaiter(void 0, void 0, void
                 return {
                     itemType: item.itemType,
                     productId: item.rawOrProductId,
-                    unitePrice: new client_1.Prisma.Decimal(item.unitPrice || 0),
-                    quantityAdd: new client_1.Prisma.Decimal(item.quantityAdd || 0),
-                    discount: new client_1.Prisma.Decimal((item === null || item === void 0 ? void 0 : item.discount) || 0),
+                    unitePrice: item.unitPrice || 0,
+                    quantityAdd: item.quantityAdd || 0,
+                    discount: (item === null || item === void 0 ? void 0 : item.discount) || 0,
                     Journal: {
                         create: {
                             transectionId: createTransactionInfo.id,

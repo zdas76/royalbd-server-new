@@ -1,10 +1,11 @@
-import { BankAccount, BankClosing, Prisma } from "@prisma/client";
+import { BankAccount, Prisma } from "@prisma/client";
 import prisma from "../../../shared/prisma";
 import AppError from "../../errors/AppError";
 import { StatusCodes } from "http-status-codes";
 import { date } from "zod";
+import { TBankAccount } from "./bank.types";
 
-const createBankAccount = async (payload: BankAccount | any) => {
+const createBankAccount = async (payload: TBankAccount) => {
   //check account number isExisted
   const accountExisted = await prisma.bankAccount.findFirst({
     where: {
@@ -21,29 +22,26 @@ const createBankAccount = async (payload: BankAccount | any) => {
     bankName: payload.bankName,
     branceName: payload.branceName,
     accountNumber: payload.accountNumber,
-    bankClosing: {
-      create: {
-        date: payload?.date || new Date(),
-        closingAmount: new Prisma.Decimal(payload?.amount || 0),
-      },
-    },
   };
   const result = await prisma.bankAccount.create({
     data: accountData,
-    include: {
-      bankClosing: true,
-    },
   });
+
+  if (payload?.initialBalance) {
+    await prisma.bankTransaction.create({
+      data: {
+        bankAccountId: result.id,
+        date: payload?.date,
+        debitAmount: payload?.initialBalance,
+      },
+    });
+  }
 
   return result;
 };
 
 const getAllBankAccount = async () => {
-  const result = await prisma.bankAccount.findMany({
-    include: {
-      bankClosing: true,
-    },
-  });
+  const result = await prisma.bankAccount.findMany({});
 
   return result;
 };
@@ -51,9 +49,6 @@ const getAllBankAccount = async () => {
 const getBankAccountById = async (id: number) => {
   const result = await prisma.bankAccount.findFirst({
     where: { id },
-    include: {
-      bankClosing: true,
-    },
   });
 
   return result;

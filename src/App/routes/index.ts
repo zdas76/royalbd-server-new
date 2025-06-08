@@ -18,6 +18,7 @@ import { LogCategoryRoute } from "../modules/LogCategory/logCategory.route";
 import { GradesRoutes } from "../modules/Grades/grades.route";
 import { GradesOrderRouter } from "../modules/GradesOrders/gOrder.route";
 import { createProductRoute } from "../modules/createProduce/createProduct.route";
+import { LogtoRawRoute } from "../modules/LogtoRowMaterial/logToRaw.route";
 
 const router = express.Router();
 
@@ -97,6 +98,10 @@ const moduleRoutes = [
   {
     path: "/create-product",
     route: createProductRoute,
+  },
+  {
+    path: "/log-to-raw",
+    route: LogtoRawRoute,
   },
 ];
 

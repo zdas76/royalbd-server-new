@@ -34,14 +34,53 @@ const createInventory = (id, payload) => __awaiter(void 0, void 0, void 0, funct
     return result;
 });
 const getInventory = () => __awaiter(void 0, void 0, void 0, function* () {
-    return yield prisma_1.default.inventory.findMany();
+    return yield prisma_1.default.inventory.findMany({
+        include: {
+            Journal: true,
+        },
+    });
 });
 const getInventoryById = (id) => __awaiter(void 0, void 0, void 0, function* () {
     return yield prisma_1.default.inventory.findFirst({
         where: {
             id,
         },
+        include: {
+            Journal: true,
+            product: true,
+            raWMaterial: true,
+        },
     });
+});
+const getInventoryAggValueById = (query) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield prisma_1.default.$queryRaw `
+  SELECT 
+    i.productId,
+    
+    SUM(IFNULL(i.quantityAdd, 0) - IFNULL(i.quantityLess, 0)) AS netQuantity,
+    SUM(IFNULL(j.debitAmount, 0)- IFNULL(j.creditAmount, 0)) AS netAmount
+  FROM inventories i
+  LEFT JOIN journals j ON j.inventoryItemId = i.id
+  GROUP BY i.productId`;
+    //   const startDate = "2025-06-01";
+    //   const endDate = "2025-06-06";
+    //   const result = await prisma.$queryRaw<
+    //     Array<{
+    //       productId: number | null;
+    //       netQuantity: number;
+    //       netJournalAmount: number;
+    //     }>
+    //   >(Prisma.sql`
+    //   SELECT
+    //     i.productId,
+    //     SUM(IFNULL(i.quantityAdd, 0) - IFNULL(i.quantityLess, 0)) AS netQuantity,
+    //     SUM(IFNULL(j.debitAmount, 0) - IFNULL(j.creditAmount, 0)) AS netJournalAmount
+    //   FROM inventories i
+    //   LEFT JOIN journals j ON j.inventoryItemId = i.id
+    //   WHERE DATE(i.createdAt) BETWEEN ${startDate} AND ${endDate}
+    //   GROUP BY i.productId
+    // `);
+    return result;
 });
 const updateInventory = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
     return yield prisma_1.default.inventory.updateMany({
@@ -56,6 +95,7 @@ exports.InventoryService = {
     createInventory,
     getInventory,
     getInventoryById,
+    getInventoryAggValueById,
     updateInventory,
     deleteInventory,
 };

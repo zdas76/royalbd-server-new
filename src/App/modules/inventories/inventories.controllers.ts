@@ -1,30 +1,74 @@
 import { Request, Response } from "express";
 import catchAsync from "../../../shared/catchAsync";
-
-const createInventory = catchAsync(async (req: Request, res: Response) => {
-  return console.log("first");
-});
+import prisma from "../../../shared/prisma";
+import { InventoryService } from "./inventories.service";
+import sendResponse from "../../../shared/sendResponse";
+import { StatusCodes } from "http-status-codes";
 
 const getnventory = catchAsync(async (req: Request, res: Response) => {
-  return console.log("first");
+  const result = await InventoryService.getInventory();
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Parties retrived Successfully",
+    data: result,
+  });
 });
 
 const getInventoryById = catchAsync(async (req: Request, res: Response) => {
-  return console.log("first");
+  const id = Number(req.params.id);
+  console.log(id);
+  const result = await InventoryService.getInventoryById(id);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Parties retrived Successfully",
+    data: result,
+  });
 });
 
 const updateInventory = catchAsync(async (req: Request, res: Response) => {
-  return console.log("first");
+  const result = await InventoryService.getInventory();
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Parties retrived Successfully",
+    data: result,
+  });
 });
 
 const deleteInventory = catchAsync(async (req: Request, res: Response) => {
-  return console.log("first");
+  console.log("params", req.params);
+
+  const result = await InventoryService.getInventory();
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Parties retrived Successfully",
+    data: result,
+  });
 });
 
+const getInventoryAggigetValue = catchAsync(
+  async (req: Request, res: Response) => {
+    const result = await InventoryService.getInventoryAggValueById(req.query);
+
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "Parties retrived Successfully",
+      data: result,
+    });
+  }
+);
+
 export const InventoryControllers = {
-  createInventory,
   getnventory,
   getInventoryById,
   updateInventory,
   deleteInventory,
+  getInventoryAggigetValue,
 };

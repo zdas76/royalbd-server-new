@@ -2,6 +2,7 @@ import { LogOrderItem, PartyType } from "@prisma/client";
 import prisma from "../../../shared/prisma";
 import AppError from "../../errors/AppError";
 import { StatusCodes } from "http-status-codes";
+import { TlogOrderItems } from "./order.types";
 
 const getAllOrder = async () => {
   const result = await prisma.logOrder.findMany();
@@ -23,40 +24,47 @@ const createGradesOrder = async (payLoad: any) => {
 
     const isLogGradesExisted = await payLoad.logOrderItem.map(
       async (item: LogOrderItem) => {
-        if (item.logGradesId && item.addQuantity) {
+        if (item.logGradeId && item.quantity) {
           return await prisma.logGrades.findFirst({
-            where: { id: item.logGradesId },
+            where: { id: item.logGradeId },
           });
         }
       }
     );
 
     if (!isLogGradesExisted) {
-      throw new AppError(StatusCodes.NOT_FOUND, "Log grades item not found");
+      throw new AppError(StatusCodes.NOT_FOUND, "Log grades item is not found");
     }
 
     const orderData = {
       supplierId: payLoad.supplierId,
       chalanNo: payLoad.chalanNo || null,
       date: payLoad.date,
-      voucherNo: payLoad.voucherNo,
+      voucherNo: payLoad.voucherNo || null,
+      addQuantity: payLoad.logOrderTotalQuantity,
+      Journal: {
+        create: {
+          debitAmount: payLoad.logOrderTotalAmount,
+          narration: payLoad.narration || "",
+        },
+      },
     };
 
     const orderInfo = await tx.logOrder.create({
       data: orderData,
     });
 
-    const orderItem = payLoad.logOrderItem.map((item: LogOrderItem) => ({
+    const orderItem = payLoad.logOrderItem.map((item: TlogOrderItems) => ({
       logOrderId: orderInfo.id,
-      logGradesId: item.logGradesId,
+      logGradeId: item.logGradeId,
       radis: item.radis,
       height: item.height,
-      addQuantity: item.addQuantity,
+      quantity: item.quantity,
       u_price: item.u_price,
-      debitAmount: item.debitAmount,
+      amount: item.amount,
     }));
 
-    const creadeOrderItem = await tx.logOrderItem.createMany({
+    await tx.logOrderItem.createMany({
       data: orderItem,
     });
 
@@ -106,8 +114,7 @@ const createGradesOrder = async (payLoad: any) => {
       id: creadtOrder,
     },
     include: {
-      orderItem: true,
-      Journal: true,
+      logOrderItem: true,
     },
   });
   return result;

@@ -4,7 +4,6 @@ import prisma from "../../../shared/prisma";
 const createPliersItemIntoDB = async (
   payLoad: AccountMainPiller
 ): Promise<AccountMainPiller> => {
-  console.log(payLoad);
   const result = await prisma.accountMainPiller.create({
     data: payLoad,
   });

@@ -14,25 +14,61 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InventoryControllers = void 0;
 const catchAsync_1 = __importDefault(require("../../../shared/catchAsync"));
-const createInventory = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    return console.log("first");
-}));
+const inventories_service_1 = require("./inventories.service");
+const sendResponse_1 = __importDefault(require("../../../shared/sendResponse"));
+const http_status_codes_1 = require("http-status-codes");
 const getnventory = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    return console.log("first");
+    const result = yield inventories_service_1.InventoryService.getInventory();
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "Parties retrived Successfully",
+        data: result,
+    });
 }));
 const getInventoryById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    return console.log("first");
+    const id = Number(req.params.id);
+    console.log(id);
+    const result = yield inventories_service_1.InventoryService.getInventoryById(id);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "Parties retrived Successfully",
+        data: result,
+    });
 }));
 const updateInventory = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    return console.log("first");
+    const result = yield inventories_service_1.InventoryService.getInventory();
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "Parties retrived Successfully",
+        data: result,
+    });
 }));
 const deleteInventory = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    return console.log("first");
+    console.log("params", req.params);
+    const result = yield inventories_service_1.InventoryService.getInventory();
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "Parties retrived Successfully",
+        data: result,
+    });
+}));
+const getInventoryAggigetValue = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield inventories_service_1.InventoryService.getInventoryAggValueById(req.query);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "Parties retrived Successfully",
+        data: result,
+    });
 }));
 exports.InventoryControllers = {
-    createInventory,
     getnventory,
     getInventoryById,
     updateInventory,
     deleteInventory,
+    getInventoryAggigetValue,
 };

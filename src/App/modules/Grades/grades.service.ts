@@ -2,8 +2,10 @@ import { LogGrades } from "@prisma/client";
 import prisma from "../../../shared/prisma";
 import AppError from "../../errors/AppError";
 import { StatusCodes } from "http-status-codes";
+import { TLogGradesTypes } from "./grades.types";
 
-const crateGradeIntoDB = async (payLoad: LogGrades) => {
+const crateGradeIntoDB = async (payLoad: TLogGradesTypes) => {
+  console.log(payLoad);
   const isExistCategory = await prisma.logCategory.findUnique({
     where: {
       id: payLoad.categoryId,
@@ -16,6 +18,7 @@ const crateGradeIntoDB = async (payLoad: LogGrades) => {
 
   const isExistName = await prisma.logGrades.findFirst({
     where: {
+      categoryId: payLoad.categoryId,
       gradeName: payLoad.gradeName,
     },
   });
@@ -30,6 +33,17 @@ const crateGradeIntoDB = async (payLoad: LogGrades) => {
   const result = await prisma.logGrades.create({
     data: payLoad,
   });
+
+  if (payLoad.initialStock) {
+    await prisma.logOrder.create({
+      data: {
+        logGradeId: result.id,
+        addQuantity: payLoad.initialStock.quantity,
+        date: payLoad.initialStock.date,
+      },
+    });
+  }
+
   return result;
 };
 
