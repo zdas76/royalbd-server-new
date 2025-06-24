@@ -16,27 +16,10 @@ exports.InventoryService = void 0;
 const prisma_1 = __importDefault(require("../../../shared/prisma"));
 const AppError_1 = __importDefault(require("../../errors/AppError"));
 const http_status_codes_1 = require("http-status-codes");
-const createInventory = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
-    const checkData = payload.map((item) => {
-        if (item.itemType == "RAW_MATERIAL") {
-            return rawMaterialIsExist({ id: item.id });
-        }
-        else {
-            return porductIsExist({ id: item.id });
-        }
-    });
-    if (!checkData) {
-        throw new AppError_1.default(http_status_codes_1.StatusCodes.BAD_GATEWAY, "No Data found");
-    }
-    const result = yield prisma_1.default.inventory.createMany({
-        data: payload,
-    });
-    return result;
-});
 const getInventory = () => __awaiter(void 0, void 0, void 0, function* () {
     return yield prisma_1.default.inventory.findMany({
         include: {
-            Journal: true,
+            journal: true,
         },
     });
 });
@@ -46,41 +29,59 @@ const getInventoryById = (id) => __awaiter(void 0, void 0, void 0, function* () 
             id,
         },
         include: {
-            Journal: true,
+            journal: true,
             product: true,
             raWMaterial: true,
         },
     });
 });
 const getInventoryAggValueById = (query) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield prisma_1.default.$queryRaw `
+    console.log(query);
+    if (query.itemType == "product") {
+        const getDate = yield prisma_1.default.inventory.findFirst({
+            where: {
+                productId: Number(query.productId),
+                isClosing: true,
+            },
+            orderBy: [{ id: "desc" }],
+        });
+        const result = yield prisma_1.default.$queryRaw `
   SELECT 
     i.productId,
     
     SUM(IFNULL(i.quantityAdd, 0) - IFNULL(i.quantityLess, 0)) AS netQuantity,
     SUM(IFNULL(j.debitAmount, 0)- IFNULL(j.creditAmount, 0)) AS netAmount
+    
   FROM inventories i
   LEFT JOIN journals j ON j.inventoryItemId = i.id
+  WHERE i.productId = ${query.productId} AND i.date=${getDate === null || getDate === void 0 ? void 0 : getDate.date}
   GROUP BY i.productId`;
-    //   const startDate = "2025-06-01";
-    //   const endDate = "2025-06-06";
-    //   const result = await prisma.$queryRaw<
-    //     Array<{
-    //       productId: number | null;
-    //       netQuantity: number;
-    //       netJournalAmount: number;
-    //     }>
-    //   >(Prisma.sql`
-    //   SELECT
-    //     i.productId,
-    //     SUM(IFNULL(i.quantityAdd, 0) - IFNULL(i.quantityLess, 0)) AS netQuantity,
-    //     SUM(IFNULL(j.debitAmount, 0) - IFNULL(j.creditAmount, 0)) AS netJournalAmount
-    //   FROM inventories i
-    //   LEFT JOIN journals j ON j.inventoryItemId = i.id
-    //   WHERE DATE(i.createdAt) BETWEEN ${startDate} AND ${endDate}
-    //   GROUP BY i.productId
-    // `);
-    return result;
+        return result;
+    }
+    if (query.itemType == "raw") {
+        const getDate = yield prisma_1.default.inventory.findFirst({
+            where: {
+                rawId: Number(query.rawId),
+                isClosing: true,
+            },
+            orderBy: [{ id: "desc" }],
+        });
+        if (getDate === null || getDate === void 0 ? void 0 : getDate.date) {
+            throw new AppError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "date nor found");
+        }
+        const result = yield prisma_1.default.$queryRaw `
+  SELECT 
+    i.rawId,
+    
+    SUM(IFNULL(i.quantityAdd, 0) - IFNULL(i.quantityLess, 0)) AS netQuantity,
+    SUM(IFNULL(j.debitAmount, 0)- IFNULL(j.creditAmount, 0)) AS netAmount,
+    
+  FROM inventories i
+  LEFT JOIN journals j ON j.inventoryItemId = i.id
+  WHERE i.productId = ${query.rawId} AND i.date=${getDate === null || getDate === void 0 ? void 0 : getDate.date}
+  GROUP BY i.rawId`;
+        return result;
+    }
 });
 const updateInventory = (id, payload) => __awaiter(void 0, void 0, void 0, function* () {
     return yield prisma_1.default.inventory.updateMany({
@@ -92,7 +93,6 @@ const deleteInventory = (id, payload) => __awaiter(void 0, void 0, void 0, funct
     return console.log("first");
 });
 exports.InventoryService = {
-    createInventory,
     getInventory,
     getInventoryById,
     getInventoryAggValueById,

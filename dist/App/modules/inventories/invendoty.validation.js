@@ -12,7 +12,7 @@ const createInventoryValidationSchema = zod_1.default.object({
         type: zod_1.default.nativeEnum(client_1.ItemType),
         category: zod_1.default.string().max(255).optional(),
         supplier: zod_1.default.string().max(255).optional(),
-        unitePrice: zod_1.default.number().nonnegative().default(0.0),
+        unitPrice: zod_1.default.number().nonnegative().default(0.0),
         quantity: zod_1.default.number().nonnegative().default(0.0),
         totalCost: zod_1.default.number().nonnegative().default(0.0),
         closingStocks: zod_1.default.any().optional(),

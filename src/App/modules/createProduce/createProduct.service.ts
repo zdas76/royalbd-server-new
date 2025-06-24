@@ -20,7 +20,7 @@ const createProductInfo = async (payLoad: any) => {
       productId: isProductExisted.id,
       itemType: ItemType.PRODUCT,
       quantityAdd: payLoad?.product?.quantity,
-      unitePrice: payLoad?.product?.unitcost,
+      unitPrice: payLoad?.product?.unitcost,
     };
 
     // 2. add Raw Materials
@@ -53,7 +53,7 @@ const createProductInfo = async (payLoad: any) => {
         rawId: item.rowMaterialsId,
         itemType: ItemType.RAW_MATERIAL,
         quantityLess: item.quantity,
-        unitePrice: item.rowUnitprice,
+        unitPrice: item.rowUnitprice,
       })
     );
     const InventoryItem = [...rowMaterialInventory, productInventory];

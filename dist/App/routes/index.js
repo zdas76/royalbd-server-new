@@ -23,6 +23,7 @@ const logCategory_route_1 = require("../modules/LogCategory/logCategory.route");
 const grades_route_1 = require("../modules/Grades/grades.route");
 const gOrder_route_1 = require("../modules/GradesOrders/gOrder.route");
 const createProduct_route_1 = require("../modules/createProduce/createProduct.route");
+const logToRaw_route_1 = require("../modules/LogtoRowMaterial/logToRaw.route");
 const router = express_1.default.Router();
 const moduleRoutes = [
     {
@@ -100,6 +101,10 @@ const moduleRoutes = [
     {
         path: "/create-product",
         route: createProduct_route_1.createProductRoute,
+    },
+    {
+        path: "/log-to-raw",
+        route: logToRaw_route_1.LogtoRawRoute,
     },
 ];
 moduleRoutes.forEach((route) => router.use(route.path, route.route));

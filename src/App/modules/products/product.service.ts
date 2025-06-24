@@ -18,28 +18,37 @@ const createProduct = async (payload: TcreateProduct) => {
       "This product is already existed"
     );
   }
-
-  const result = await prisma.product.create({
-    data: payload,
-  });
-
-  if (payload.initialStock) {
-    await prisma.inventory.create({
+  const result = await prisma.$transaction(async (tx) => {
+    const result = await tx.product.create({
       data: {
-        productId: result.id,
-        itemType: ItemType.PRODUCT,
-        unitePrice: payload.initialStock.uniterPrice,
-        quantityAdd: payload.initialStock.amount,
-        date: payload.initialStock.date,
-        Journal: {
-          create: {
-            debitAmount: payload.initialStock.amount,
-            narration: "Initial Product Balance",
-          },
-        },
+        name: payload.name,
+        description: payload.description,
+        unitId: payload.unitId,
+        subCategoryId: payload.subCategoryId,
+        minPrice: payload.minPrice || 0,
+        color: payload.color || "",
+        size: payload.size || "",
       },
     });
-  }
+
+    if (payload.initialStock) {
+      await tx.inventory.create({
+        data: {
+          productId: result?.id,
+          date: payload.initialStock.date,
+          unitPrice: payload.initialStock.unitrPrice,
+          quantityAdd: payload.initialStock.quantity,
+          isClosing: true,
+          journal: {
+            create: {
+              debitAmount: Number(payload.initialStock.amount),
+              narration: "Initial Product",
+            },
+          },
+        },
+      });
+    }
+  });
 
   return result;
 };

@@ -8,6 +8,7 @@ const express_1 = __importDefault(require("express"));
 const raw_Controllers_1 = require("./raw.Controllers");
 const route = express_1.default.Router();
 route.post("/", raw_Controllers_1.RawMaterialControllers.createRawMaterial);
+route.post("/logtoraw", raw_Controllers_1.RawMaterialControllers.creatLogToRaw);
 route.get("/:id", raw_Controllers_1.RawMaterialControllers.deleteRawMaterialById);
 route.get("/", raw_Controllers_1.RawMaterialControllers.getAllRawMaterial);
 route.put("/:id", raw_Controllers_1.RawMaterialControllers.updateRawMaterialById);

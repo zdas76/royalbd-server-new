@@ -33,7 +33,7 @@ const createProductInfo = (payLoad) => __awaiter(void 0, void 0, void 0, functio
             productId: isProductExisted.id,
             itemType: client_1.ItemType.PRODUCT,
             quantityAdd: (_a = payLoad === null || payLoad === void 0 ? void 0 : payLoad.product) === null || _a === void 0 ? void 0 : _a.quantity,
-            unitePrice: (_b = payLoad === null || payLoad === void 0 ? void 0 : payLoad.product) === null || _b === void 0 ? void 0 : _b.unitcost,
+            unitPrice: (_b = payLoad === null || payLoad === void 0 ? void 0 : payLoad.product) === null || _b === void 0 ? void 0 : _b.unitcost,
         };
         // 2. add Raw Materials
         const isRawMaterialExisted = payLoad.rowMaterials.map((item) => __awaiter(void 0, void 0, void 0, function* () {
@@ -52,7 +52,7 @@ const createProductInfo = (payLoad) => __awaiter(void 0, void 0, void 0, functio
             rawId: item.rowMaterialsId,
             itemType: client_1.ItemType.RAW_MATERIAL,
             quantityLess: item.quantity,
-            unitePrice: item.rowUnitprice,
+            unitPrice: item.rowUnitprice,
         }));
         const InventoryItem = [...rowMaterialInventory, productInventory];
         // Step 3: Prepare Journal Credit Entries (For Payment Accounts)

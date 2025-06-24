@@ -5,14 +5,9 @@ import express from "express";
 
 const route = express.Router();
 
-// route.post(
-//   "/",
-//   validationRequiest(InventoryValidation.createInventoryValidationSchema),
-//   InventoryControllers.createInventory
-// );
 route.get("/", InventoryControllers.getnventory);
 
-route.get("/rawOrProductId", InventoryControllers.getInventoryAggigetValue);
+route.get("/inventorytotal", InventoryControllers.getInventoryAggigetValue);
 
 route.get("/:id", InventoryControllers.getInventoryById);
 

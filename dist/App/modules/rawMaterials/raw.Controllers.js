@@ -65,10 +65,21 @@ const deleteRawMaterialById = (0, catchAsync_1.default)((req, res) => __awaiter(
         data: result,
     });
 }));
+const creatLogToRaw = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const id = parseInt(req.params.id);
+    const result = yield raw_service_1.RowMaterialsService.createLogtoRaw(req.body);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "Log converted to raw material successfully",
+        data: result,
+    });
+}));
 exports.RawMaterialControllers = {
     createRawMaterial,
     getAllRawMaterial,
     getRawMaterialById,
     updateRawMaterialById,
     deleteRawMaterialById,
+    creatLogToRaw,
 };

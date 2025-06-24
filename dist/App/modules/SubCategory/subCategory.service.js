@@ -17,6 +17,7 @@ const prisma_1 = __importDefault(require("../../../shared/prisma"));
 const http_status_codes_1 = require("http-status-codes");
 const AppError_1 = __importDefault(require("../../errors/AppError"));
 const createSubCategoryToDB = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(payLoad);
     const subCategory = yield prisma_1.default.subCategory.findFirst({
         where: {
             subCategoryName: payLoad.subCategoryName,

@@ -5,15 +5,16 @@ export type TcreateProduct = {
   name: string;
   description: string;
   subCategoryId: number;
-  minPrice: number | null;
-  color: string | null;
-  size: string | null;
+  unitId: number;
+  minPrice?: number | null;
+  color?: string | null;
+  size?: string | null;
   itemType: ItemType;
   isDeleted: boolean;
   status: Status;
   initialStock: {
     quantity: number;
-    uniterPrice: number;
+    unitrPrice: number;
     amount: number;
     date: Date;
   };

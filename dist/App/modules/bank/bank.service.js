@@ -17,6 +17,7 @@ const prisma_1 = __importDefault(require("../../../shared/prisma"));
 const AppError_1 = __importDefault(require("../../errors/AppError"));
 const http_status_codes_1 = require("http-status-codes");
 const createBankAccount = (payload) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log("first", payload);
     //check account number isExisted
     const accountExisted = yield prisma_1.default.bankAccount.findFirst({
         where: {
@@ -27,23 +28,26 @@ const createBankAccount = (payload) => __awaiter(void 0, void 0, void 0, functio
     if (accountExisted) {
         throw new AppError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "This account already existed");
     }
-    const accountData = {
-        bankName: payload.bankName,
-        branceName: payload.branceName,
-        accountNumber: payload.accountNumber,
-    };
-    const result = yield prisma_1.default.bankAccount.create({
-        data: accountData,
-    });
-    if (payload.initialBalance) {
-        yield prisma_1.default.bankTransaction.create({
+    if (!payload.initialBalance) {
+        throw new AppError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "No Balance Found");
+    }
+    const result = yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+        const result = yield tx.bankAccount.create({
+            data: {
+                bankName: payload.bankName,
+                branceName: payload.branceName,
+                accountNumber: payload.accountNumber,
+            },
+        });
+        yield tx.bankTransaction.create({
             data: {
                 bankAccountId: result.id,
                 date: payload.date,
                 debitAmount: payload.initialBalance,
+                isClosing: true,
             },
         });
-    }
+    }));
     return result;
 });
 const getAllBankAccount = () => __awaiter(void 0, void 0, void 0, function* () {

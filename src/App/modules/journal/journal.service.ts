@@ -1,3 +1,4 @@
+import { date } from "zod";
 import {
   AccountsItem,
   ItemType,
@@ -39,10 +40,11 @@ const updateVoucherById = async () => {
 
 //Create Purchase Received Voucher
 const createPurchestReceivedIntoDB = async (payload: any) => {
-  // console.log("payload", payload);
+  console.log("payload", payload);
+
   const createPurchestVoucher = await prisma.$transaction(async (tx) => {
     const partyExists = await tx.party.findUnique({
-      where: { id: payload.partyOrcustomerId, partyType: PartyType.SUPPLIER },
+      where: { id: payload.partyOrcustomerId },
     });
 
     if (!partyExists) {
@@ -54,7 +56,6 @@ const createPurchestReceivedIntoDB = async (payload: any) => {
       date: payload?.date,
       invoiceNo: payload.invoiceNo || null,
       voucherNo: payload.voucherNo,
-      partyType: partyExists.partyType,
       partyId: partyExists.id,
       paymentType: payload.paymentType,
       voucherType: VoucherType.PURCHASE,
@@ -72,8 +73,9 @@ const createPurchestReceivedIntoDB = async (payload: any) => {
     // 2. create bank transaction
     const BankTXData: {
       transectionId: number;
-      bankAccountId: any;
+      bankAccountId: number;
       creditAmount: number;
+      date: Date;
     }[] = [];
 
     payload.creditItem.map(async (item: any) => {
@@ -81,12 +83,15 @@ const createPurchestReceivedIntoDB = async (payload: any) => {
         BankTXData.push({
           transectionId: createTransactionInfo.id,
           bankAccountId: item.bankId,
+          date: payload.date,
           creditAmount: new Prisma.Decimal(item?.amount).toNumber(),
         });
       }
     });
 
-    if (BankTXData) {
+    console.log(BankTXData);
+
+    if (BankTXData.length > 0) {
       await tx.bankTransaction.createMany({
         data: BankTXData,
       });
@@ -100,12 +105,12 @@ const createPurchestReceivedIntoDB = async (payload: any) => {
     const inventoryData = payload.items.map((item: any) => {
       if (item.itemType === "RAW_MATERIAL") {
         return {
-          itemType: item.itemType,
           rawId: item.rawOrProductId,
-          unitePrice: item.unitPrice || 0,
+          unitPrice: item.unitPrice || 0,
           quantityAdd: item.quantityAdd || 0,
           discount: item?.discount || 0,
-          Journal: {
+          date: payload.date,
+          journal: {
             create: {
               transectionId: createTransactionInfo.id,
               debitAmount: item.debitAmount,
@@ -115,12 +120,12 @@ const createPurchestReceivedIntoDB = async (payload: any) => {
         };
       } else {
         return {
-          itemType: item.itemType,
           productId: item.rawOrProductId,
-          unitePrice: item.unitPrice || 0,
+          unitPrice: item.unitPrice || 0,
           quantityAdd: item.quantityAdd || 0,
           discount: item?.discount || 0,
-          Journal: {
+          date: payload.date,
+          journal: {
             create: {
               transectionId: createTransactionInfo.id,
               debitAmount: new Prisma.Decimal(item.debitAmount),
@@ -138,7 +143,7 @@ const createPurchestReceivedIntoDB = async (payload: any) => {
         tx.inventory.create({
           data: item,
           include: {
-            Journal: true,
+            journal: true,
           },
         })
       )
@@ -194,7 +199,6 @@ const createSalesVoucher = async (payload: any) => {
       transactionInfoData = {
         date: payload?.date,
         voucherNo: payload.voucherNo,
-        partyType: PartyType.CUSTOMER,
         customerId: customerExists.id,
         paymentType: payload.paymentType,
         voucherType: VoucherType.SALES,
@@ -203,7 +207,6 @@ const createSalesVoucher = async (payload: any) => {
       transactionInfoData = {
         date: payload?.date,
         voucherNo: payload.voucherNo,
-        partyType: PartyType.CUSTOMER,
         customer: {
           create: {
             name: payload?.name || "",
@@ -218,7 +221,6 @@ const createSalesVoucher = async (payload: any) => {
       transactionInfoData = {
         date: payload?.date,
         voucherNo: payload.voucherNo,
-        partyType: PartyType.VENDOR,
         partyId: partyExists.id,
         paymentType: payload.paymentType,
         voucherType: VoucherType.SALES,
@@ -240,6 +242,7 @@ const createSalesVoucher = async (payload: any) => {
       transectionId: number;
       bankAccountId: number;
       debitAmount: number;
+      date: Date;
     }[] = [];
 
     payload.debitItem.map(async (item: any) => {
@@ -247,12 +250,13 @@ const createSalesVoucher = async (payload: any) => {
         BankTXData.push({
           transectionId: createTransactionInfo.id,
           bankAccountId: item.bankAccountId,
+          date: payload.date,
           debitAmount: new Prisma.Decimal(item?.debitAmount).toNumber(),
         });
       }
     });
 
-    if (BankTXData) {
+    if (BankTXData.length > 0) {
       await tx.bankTransaction.createMany({
         data: BankTXData,
       });
@@ -265,15 +269,15 @@ const createSalesVoucher = async (payload: any) => {
     // step 2: prepiar inventory data
 
     const inventoryData = payload.salseItem.map((item: any) => ({
-      itemType: ItemType.PRODUCT,
       productId: item.rawOrProductId,
-      unitePrice: new Prisma.Decimal(item.unitePrice || 0).toNumber(),
-      quantityLess: new Prisma.Decimal(item.quantity || 0).toNumber(),
-      discount: new Prisma.Decimal(item.discount || 0).toNumber(),
-      Journal: {
+      unitPrice: item.unitPrice || 0,
+      quantityLess: item.quantity || 0,
+      discount: item.discount || 0,
+      date: payload.date,
+      journal: {
         create: {
           transectionId: createTransactionInfo.id,
-          creditAmount: new Prisma.Decimal(item.creditAmount).toNumber(),
+          creditAmount: item.creditAmount,
           narration: item.narration || "",
         },
       },
@@ -286,7 +290,7 @@ const createSalesVoucher = async (payload: any) => {
         tx.inventory.create({
           data: item,
           include: {
-            Journal: true,
+            journal: true,
           },
         })
       )
@@ -363,6 +367,7 @@ const createPaymentVoucher = async (payload: any) => {
       transectionId: number;
       bankAccountId: number;
       debitAmount: number;
+      date: Date;
     }[] = [];
 
     payload.debitItem.map(async (item: any) => {
@@ -370,6 +375,7 @@ const createPaymentVoucher = async (payload: any) => {
         BankTXData.push({
           transectionId: createTransactionInfo.id,
           bankAccountId: item.bankId,
+          date: payload.date,
           debitAmount: new Prisma.Decimal(item?.amount).toNumber(),
         });
       }
@@ -455,6 +461,7 @@ const createReceiptVoucher = async (payload: any) => {
       transectionId: number;
       bankAccountId: number;
       debitAmount: number;
+      date: Date;
     }[] = [];
 
     payload.debitItem.map(async (item: any) => {
@@ -462,12 +469,14 @@ const createReceiptVoucher = async (payload: any) => {
         BankTXData.push({
           transectionId: createTransactionInfo.id,
           bankAccountId: item.bankId,
+          date: payload.date,
           debitAmount: new Prisma.Decimal(item?.amount).toNumber(),
         });
       }
     });
+    console.log(BankTXData);
 
-    if (BankTXData) {
+    if (BankTXData.length > 0) {
       await tx.bankTransaction.createMany({
         data: BankTXData,
       });

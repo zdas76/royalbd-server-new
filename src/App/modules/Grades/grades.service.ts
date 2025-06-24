@@ -35,10 +35,12 @@ const crateGradeIntoDB = async (payLoad: TLogGradesTypes) => {
   });
 
   if (payLoad.initialStock) {
-    await prisma.logOrder.create({
+    await prisma.logOrdByCategory.create({
       data: {
-        logGradeId: result.id,
-        addQuantity: payLoad.initialStock.quantity,
+        logCategoryId: payLoad.categoryId,
+        quantityAdd: payLoad.initialStock.quantity,
+        debitAmount: payLoad.initialStock.amount,
+        unitPrice: payLoad.initialStock.amount / payLoad.initialStock.quantity,
         date: payLoad.initialStock.date,
       },
     });

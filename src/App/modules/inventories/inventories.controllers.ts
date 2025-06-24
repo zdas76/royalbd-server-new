@@ -54,7 +54,9 @@ const deleteInventory = catchAsync(async (req: Request, res: Response) => {
 
 const getInventoryAggigetValue = catchAsync(
   async (req: Request, res: Response) => {
-    const result = await InventoryService.getInventoryAggValueById(req.query);
+    const result: any = await InventoryService.getInventoryAggValueById(
+      req.query
+    );
 
     sendResponse(res, {
       statusCode: StatusCodes.OK,

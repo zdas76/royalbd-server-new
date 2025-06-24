@@ -41,10 +41,10 @@ const updateVoucherById = () => __awaiter(void 0, void 0, void 0, function* () {
 });
 //Create Purchase Received Voucher
 const createPurchestReceivedIntoDB = (payload) => __awaiter(void 0, void 0, void 0, function* () {
-    // console.log("payload", payload);
+    console.log("payload", payload);
     const createPurchestVoucher = yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
         const partyExists = yield tx.party.findUnique({
-            where: { id: payload.partyOrcustomerId, partyType: client_1.PartyType.SUPPLIER },
+            where: { id: payload.partyOrcustomerId },
         });
         if (!partyExists) {
             throw new Error(`Invalid partyOrcustomerId: ${payload.partyOrcustomerId}. No matching Party found.`);
@@ -53,7 +53,6 @@ const createPurchestReceivedIntoDB = (payload) => __awaiter(void 0, void 0, void
             date: payload === null || payload === void 0 ? void 0 : payload.date,
             invoiceNo: payload.invoiceNo || null,
             voucherNo: payload.voucherNo,
-            partyType: partyExists.partyType,
             partyId: partyExists.id,
             paymentType: payload.paymentType,
             voucherType: client_1.VoucherType.PURCHASE,
@@ -72,11 +71,13 @@ const createPurchestReceivedIntoDB = (payload) => __awaiter(void 0, void 0, void
                 BankTXData.push({
                     transectionId: createTransactionInfo.id,
                     bankAccountId: item.bankId,
+                    date: payload.date,
                     creditAmount: new client_1.Prisma.Decimal(item === null || item === void 0 ? void 0 : item.amount).toNumber(),
                 });
             }
         }));
-        if (BankTXData) {
+        console.log(BankTXData);
+        if (BankTXData.length > 0) {
             yield tx.bankTransaction.createMany({
                 data: BankTXData,
             });
@@ -88,12 +89,12 @@ const createPurchestReceivedIntoDB = (payload) => __awaiter(void 0, void 0, void
         const inventoryData = payload.items.map((item) => {
             if (item.itemType === "RAW_MATERIAL") {
                 return {
-                    itemType: item.itemType,
                     rawId: item.rawOrProductId,
-                    unitePrice: item.unitPrice || 0,
+                    unitPrice: item.unitPrice || 0,
                     quantityAdd: item.quantityAdd || 0,
                     discount: (item === null || item === void 0 ? void 0 : item.discount) || 0,
-                    Journal: {
+                    date: payload.date,
+                    journal: {
                         create: {
                             transectionId: createTransactionInfo.id,
                             debitAmount: item.debitAmount,
@@ -104,12 +105,12 @@ const createPurchestReceivedIntoDB = (payload) => __awaiter(void 0, void 0, void
             }
             else {
                 return {
-                    itemType: item.itemType,
                     productId: item.rawOrProductId,
-                    unitePrice: item.unitPrice || 0,
+                    unitPrice: item.unitPrice || 0,
                     quantityAdd: item.quantityAdd || 0,
                     discount: (item === null || item === void 0 ? void 0 : item.discount) || 0,
-                    Journal: {
+                    date: payload.date,
+                    journal: {
                         create: {
                             transectionId: createTransactionInfo.id,
                             debitAmount: new client_1.Prisma.Decimal(item.debitAmount),
@@ -123,7 +124,7 @@ const createPurchestReceivedIntoDB = (payload) => __awaiter(void 0, void 0, void
         const createdItems = yield Promise.all(inventoryData.map((item) => tx.inventory.create({
             data: item,
             include: {
-                Journal: true,
+                journal: true,
             },
         })));
         // Step 7: Prepare Journal Credit Entries (For Payment Accounts)
@@ -166,7 +167,6 @@ const createSalesVoucher = (payload) => __awaiter(void 0, void 0, void 0, functi
             transactionInfoData = {
                 date: payload === null || payload === void 0 ? void 0 : payload.date,
                 voucherNo: payload.voucherNo,
-                partyType: client_1.PartyType.CUSTOMER,
                 customerId: customerExists.id,
                 paymentType: payload.paymentType,
                 voucherType: client_1.VoucherType.SALES,
@@ -176,7 +176,6 @@ const createSalesVoucher = (payload) => __awaiter(void 0, void 0, void 0, functi
             transactionInfoData = {
                 date: payload === null || payload === void 0 ? void 0 : payload.date,
                 voucherNo: payload.voucherNo,
-                partyType: client_1.PartyType.CUSTOMER,
                 customer: {
                     create: {
                         name: (payload === null || payload === void 0 ? void 0 : payload.name) || "",
@@ -192,7 +191,6 @@ const createSalesVoucher = (payload) => __awaiter(void 0, void 0, void 0, functi
             transactionInfoData = {
                 date: payload === null || payload === void 0 ? void 0 : payload.date,
                 voucherNo: payload.voucherNo,
-                partyType: client_1.PartyType.VENDOR,
                 partyId: partyExists.id,
                 paymentType: payload.paymentType,
                 voucherType: client_1.VoucherType.SALES,
@@ -213,11 +211,12 @@ const createSalesVoucher = (payload) => __awaiter(void 0, void 0, void 0, functi
                 BankTXData.push({
                     transectionId: createTransactionInfo.id,
                     bankAccountId: item.bankAccountId,
+                    date: payload.date,
                     debitAmount: new client_1.Prisma.Decimal(item === null || item === void 0 ? void 0 : item.debitAmount).toNumber(),
                 });
             }
         }));
-        if (BankTXData) {
+        if (BankTXData.length > 0) {
             yield tx.bankTransaction.createMany({
                 data: BankTXData,
             });
@@ -227,15 +226,15 @@ const createSalesVoucher = (payload) => __awaiter(void 0, void 0, void 0, functi
         }
         // step 2: prepiar inventory data
         const inventoryData = payload.salseItem.map((item) => ({
-            itemType: client_1.ItemType.PRODUCT,
             productId: item.rawOrProductId,
-            unitePrice: new client_1.Prisma.Decimal(item.unitePrice || 0).toNumber(),
-            quantityLess: new client_1.Prisma.Decimal(item.quantity || 0).toNumber(),
-            discount: new client_1.Prisma.Decimal(item.discount || 0).toNumber(),
-            Journal: {
+            unitPrice: item.unitPrice || 0,
+            quantityLess: item.quantity || 0,
+            discount: item.discount || 0,
+            date: payload.date,
+            journal: {
                 create: {
                     transectionId: createTransactionInfo.id,
-                    creditAmount: new client_1.Prisma.Decimal(item.creditAmount).toNumber(),
+                    creditAmount: item.creditAmount,
                     narration: item.narration || "",
                 },
             },
@@ -244,7 +243,7 @@ const createSalesVoucher = (payload) => __awaiter(void 0, void 0, void 0, functi
         const createdItems = yield Promise.all(inventoryData.map((item) => tx.inventory.create({
             data: item,
             include: {
-                Journal: true,
+                journal: true,
             },
         })));
         if (!Array.isArray(payload.debitItem) || payload.debitItem.length === 0) {
@@ -308,6 +307,7 @@ const createPaymentVoucher = (payload) => __awaiter(void 0, void 0, void 0, func
                 BankTXData.push({
                     transectionId: createTransactionInfo.id,
                     bankAccountId: item.bankId,
+                    date: payload.date,
                     debitAmount: new client_1.Prisma.Decimal(item === null || item === void 0 ? void 0 : item.amount).toNumber(),
                 });
             }
@@ -375,11 +375,13 @@ const createReceiptVoucher = (payload) => __awaiter(void 0, void 0, void 0, func
                 BankTXData.push({
                     transectionId: createTransactionInfo.id,
                     bankAccountId: item.bankId,
+                    date: payload.date,
                     debitAmount: new client_1.Prisma.Decimal(item === null || item === void 0 ? void 0 : item.amount).toNumber(),
                 });
             }
         }));
-        if (BankTXData) {
+        console.log(BankTXData);
+        if (BankTXData.length > 0) {
             yield tx.bankTransaction.createMany({
                 data: BankTXData,
             });

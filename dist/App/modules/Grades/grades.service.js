@@ -39,18 +39,13 @@ const crateGradeIntoDB = (payLoad) => __awaiter(void 0, void 0, void 0, function
         data: payLoad,
     });
     if (payLoad.initialStock) {
-        yield prisma_1.default.inventory.create({
+        yield prisma_1.default.logOrdByCategory.create({
             data: {
-                rawId: result.id,
-                unitePrice: payload.initialStock.uniterPrice,
-                quantityAdd: payload.initialStock.quantityAdd,
-                date: payload.initialStock.date,
-                Journal: {
-                    create: {
-                        debitAmount: payload.initialStock.quantityAdd,
-                        narration: "Initial raw material balance",
-                    },
-                },
+                logCategoryId: payLoad.categoryId,
+                quantityAdd: payLoad.initialStock.quantity,
+                debitAmount: payLoad.initialStock.amount,
+                unitPrice: payLoad.initialStock.amount / payLoad.initialStock.quantity,
+                date: payLoad.initialStock.date,
             },
         });
     }

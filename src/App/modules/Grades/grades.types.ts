@@ -6,11 +6,12 @@ export type TLogGradesTypes = {
   gradeName: string;
   minRadius: number;
   maxRadius: number;
-  unitePrice: number;
+  unitPrice: number;
+  unitId: number;
   status: Status;
   initialStock: {
     quantity: number;
-    uniterPrice: number;
+    unitrPrice: number;
     amount: number;
     date: Date;
   };

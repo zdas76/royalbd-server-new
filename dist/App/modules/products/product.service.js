@@ -13,7 +13,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductService = void 0;
-const client_1 = require("@prisma/client");
 const prisma_1 = __importDefault(require("../../../shared/prisma"));
 const AppError_1 = __importDefault(require("../../errors/AppError"));
 const http_status_codes_1 = require("http-status-codes");
@@ -27,26 +26,36 @@ const createProduct = (payload) => __awaiter(void 0, void 0, void 0, function* (
     if (isExist) {
         throw new AppError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "This product is already existed");
     }
-    const result = yield prisma_1.default.product.create({
-        data: payload,
-    });
-    if (payload.initialStock) {
-        yield prisma_1.default.inventory.create({
+    const result = yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+        const result = yield tx.product.create({
             data: {
-                productId: result.id,
-                itemType: client_1.ItemType.PRODUCT,
-                unitePrice: payload.initialStock.uniterPrice,
-                quantityAdd: payload.initialStock.quantityAdd,
-                date: payload.initialStock.date,
-                Journal: {
-                    create: {
-                        debitAmount: payload.initialStock.quantityAdd,
-                        narration: "Initial Product Balance",
-                    },
-                },
+                name: payload.name,
+                description: payload.description,
+                unitId: payload.unitId,
+                subCategoryId: payload.subCategoryId,
+                minPrice: payload.minPrice || 0,
+                color: payload.color || "",
+                size: payload.size || "",
             },
         });
-    }
+        if (payload.initialStock) {
+            yield tx.inventory.create({
+                data: {
+                    productId: result === null || result === void 0 ? void 0 : result.id,
+                    date: payload.initialStock.date,
+                    unitPrice: payload.initialStock.unitrPrice,
+                    quantityAdd: payload.initialStock.quantity,
+                    isClosing: true,
+                    journal: {
+                        create: {
+                            debitAmount: Number(payload.initialStock.amount),
+                            narration: "Initial Product",
+                        },
+                    },
+                },
+            });
+        }
+    }));
     return result;
 });
 const gerProduct = () => __awaiter(void 0, void 0, void 0, function* () {

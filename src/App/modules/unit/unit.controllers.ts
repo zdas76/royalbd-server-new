@@ -21,7 +21,7 @@ const getAllUnit = catchAsync(async (req: Request, res: Response) => {
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
-    message: "Unites retrive Successfully",
+    message: "Units retrive Successfully",
     data: result,
   });
 });

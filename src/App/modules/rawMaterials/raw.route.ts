@@ -5,6 +5,8 @@ const route = express.Router();
 
 route.post("/", RawMaterialControllers.createRawMaterial);
 
+route.post("/logtoraw", RawMaterialControllers.creatLogToRaw);
+
 route.get("/:id", RawMaterialControllers.deleteRawMaterialById);
 
 route.get("/", RawMaterialControllers.getAllRawMaterial);

@@ -1,6 +1,7 @@
 import { ItemType, Status } from "@prisma/client";
 
 export type TrawMaterial = {
+  unitId: any;
   name: string;
   id: number;
   itemType: ItemType;
@@ -9,7 +10,7 @@ export type TrawMaterial = {
   isDeleted: boolean;
   initialStock: {
     quantity: number;
-    uniterPrice: number;
+    unitPrice: number;
     amount: number;
     date: Date;
   };

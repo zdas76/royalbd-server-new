@@ -6,6 +6,7 @@ import { date } from "zod";
 import { TBankAccount } from "./bank.types";
 
 const createBankAccount = async (payload: TBankAccount) => {
+  console.log("first", payload);
   //check account number isExisted
   const accountExisted = await prisma.bankAccount.findFirst({
     where: {
@@ -17,25 +18,28 @@ const createBankAccount = async (payload: TBankAccount) => {
   if (accountExisted) {
     throw new AppError(StatusCodes.BAD_REQUEST, "This account already existed");
   }
+  if (!payload.initialBalance) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "No Balance Found");
+  }
 
-  const accountData = {
-    bankName: payload.bankName,
-    branceName: payload.branceName,
-    accountNumber: payload.accountNumber,
-  };
-  const result = await prisma.bankAccount.create({
-    data: accountData,
-  });
-
-  if (payload?.initialBalance) {
-    await prisma.bankTransaction.create({
+  const result = await prisma.$transaction(async (tx) => {
+    const result = await tx.bankAccount.create({
       data: {
-        bankAccountId: result.id,
-        date: payload?.date,
-        debitAmount: payload?.initialBalance,
+        bankName: payload.bankName,
+        branceName: payload.branceName,
+        accountNumber: payload.accountNumber,
       },
     });
-  }
+
+    await tx.bankTransaction.create({
+      data: {
+        bankAccountId: result.id,
+        date: payload.date,
+        debitAmount: payload.initialBalance,
+        isClosing: true,
+      },
+    });
+  });
 
   return result;
 };

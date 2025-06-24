@@ -9,7 +9,12 @@ const getAllOrder = async () => {
 
   return result;
 };
+
+
 const createGradesOrder = async (payLoad: any) => {
+  
+  console.log("Log Order",payLoad)
+
   const creadtOrder = await prisma.$transaction(async (tx) => {
     const isSupplierExistd = await tx.party.findFirst({
       where: {

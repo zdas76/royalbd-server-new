@@ -1,40 +1,13 @@
 import { date } from "zod";
-import {
-  Inventory,
-  ItemType,
-  Journal,
-  Prisma,
-  PrismaClient,
-} from "@prisma/client";
+import { Inventory } from "@prisma/client";
 import prisma from "../../../shared/prisma";
 import AppError from "../../errors/AppError";
 import { StatusCodes } from "http-status-codes";
-import { QueryOptions } from "@prisma/client/runtime/library";
-
-const createInventory = async (id: number, payload: Inventory[]) => {
-  const checkData = payload.map((item) => {
-    if (item.itemType == "RAW_MATERIAL") {
-      return rawMaterialIsExist({ id: item.id });
-    } else {
-      return porductIsExist({ id: item.id });
-    }
-  });
-
-  if (!checkData) {
-    throw new AppError(StatusCodes.BAD_GATEWAY, "No Data found");
-  }
-
-  const result = await prisma.inventory.createMany({
-    data: payload,
-  });
-
-  return result;
-};
 
 const getInventory = async () => {
   return await prisma.inventory.findMany({
     include: {
-      Journal: true,
+      journal: true,
     },
   });
 };
@@ -45,7 +18,7 @@ const getInventoryById = async (id: number) => {
       id,
     },
     include: {
-      Journal: true,
+      journal: true,
       product: true,
       raWMaterial: true,
     },
@@ -53,37 +26,60 @@ const getInventoryById = async (id: number) => {
 };
 
 const getInventoryAggValueById = async (query: any) => {
-  const result = await prisma.$queryRaw`
+  console.log(query);
+  if (query.itemType == "product") {
+    const getDate = await prisma.inventory.findFirst({
+      where: {
+        productId: Number(query.productId),
+        isClosing: true,
+      },
+
+      orderBy: [{ id: "desc" }],
+    });
+
+    const result = await prisma.$queryRaw`
   SELECT 
     i.productId,
     
     SUM(IFNULL(i.quantityAdd, 0) - IFNULL(i.quantityLess, 0)) AS netQuantity,
     SUM(IFNULL(j.debitAmount, 0)- IFNULL(j.creditAmount, 0)) AS netAmount
+    
   FROM inventories i
   LEFT JOIN journals j ON j.inventoryItemId = i.id
+  WHERE i.productId = ${query.productId} AND i.date=${getDate?.date}
   GROUP BY i.productId`;
 
-  //   const startDate = "2025-06-01";
-  //   const endDate = "2025-06-06";
+    return result;
+  }
 
-  //   const result = await prisma.$queryRaw<
-  //     Array<{
-  //       productId: number | null;
-  //       netQuantity: number;
-  //       netJournalAmount: number;
-  //     }>
-  //   >(Prisma.sql`
-  //   SELECT
-  //     i.productId,
-  //     SUM(IFNULL(i.quantityAdd, 0) - IFNULL(i.quantityLess, 0)) AS netQuantity,
-  //     SUM(IFNULL(j.debitAmount, 0) - IFNULL(j.creditAmount, 0)) AS netJournalAmount
-  //   FROM inventories i
-  //   LEFT JOIN journals j ON j.inventoryItemId = i.id
-  //   WHERE DATE(i.createdAt) BETWEEN ${startDate} AND ${endDate}
-  //   GROUP BY i.productId
-  // `);
+  if (query.itemType == "raw") {
+    const getDate = await prisma.inventory.findFirst({
+      where: {
+        rawId: Number(query.rawId),
+        isClosing: true,
+      },
 
-  return result;
+      orderBy: [{ id: "desc" }],
+    });
+
+    if (getDate?.date) {
+      throw new AppError(StatusCodes.NOT_FOUND, "date nor found");
+    }
+
+    const result = await prisma.$queryRaw`
+  SELECT 
+    i.rawId,
+    
+    SUM(IFNULL(i.quantityAdd, 0) - IFNULL(i.quantityLess, 0)) AS netQuantity,
+    SUM(IFNULL(j.debitAmount, 0)- IFNULL(j.creditAmount, 0)) AS netAmount,
+    
+  FROM inventories i
+  LEFT JOIN journals j ON j.inventoryItemId = i.id
+  WHERE i.productId = ${query.rawId} AND i.date=${getDate?.date}
+  GROUP BY i.rawId`;
+
+    return result;
+  }
 };
 
 const updateInventory = async (id: number, payload: Inventory) => {
@@ -98,7 +94,6 @@ const deleteInventory = async (id: number, payload: Inventory) => {
 };
 
 export const InventoryService = {
-  createInventory,
   getInventory,
   getInventoryById,
   getInventoryAggValueById,

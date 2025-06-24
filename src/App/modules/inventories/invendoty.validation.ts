@@ -7,7 +7,7 @@ const createInventoryValidationSchema = z.object({
     type: z.nativeEnum(ItemType),
     category: z.string().max(255).optional(),
     supplier: z.string().max(255).optional(),
-    unitePrice: z.number().nonnegative().default(0.0),
+    unitPrice: z.number().nonnegative().default(0.0),
     quantity: z.number().nonnegative().default(0.0),
     totalCost: z.number().nonnegative().default(0.0),
     closingStocks: z.any().optional(),

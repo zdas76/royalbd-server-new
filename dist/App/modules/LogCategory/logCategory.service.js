@@ -17,7 +17,6 @@ const http_status_codes_1 = require("http-status-codes");
 const prisma_1 = __importDefault(require("../../../shared/prisma"));
 const AppError_1 = __importDefault(require("../../errors/AppError"));
 const createCategoryIntoDB = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(payLoad);
     //   const result = await prisma;
     const isExisted = yield prisma_1.default.logCategory.findUnique({
         where: {

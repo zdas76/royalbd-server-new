@@ -13,39 +13,44 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RowMaterialsService = void 0;
-const client_1 = require("@prisma/client");
 const prisma_1 = __importDefault(require("../../../shared/prisma"));
 const AppError_1 = __importDefault(require("../../errors/AppError"));
 const http_status_codes_1 = require("http-status-codes");
 const createRawMaterial = (payload) => __awaiter(void 0, void 0, void 0, function* () {
     const isExist = yield prisma_1.default.rawMaterial.findFirst({
         where: {
-            name: payload.name,
+            name: payload === null || payload === void 0 ? void 0 : payload.name,
         },
     });
     if (isExist) {
         throw new AppError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "This name is already used");
     }
-    const result = yield prisma_1.default.rawMaterial.create({
-        data: payload,
-    });
-    if (payload.initialStock) {
-        yield prisma_1.default.inventory.create({
+    const result = yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+        const rawMeterial = yield tx.rawMaterial.create({
             data: {
-                rawId: result.id,
-                itemType: client_1.ItemType.RAW_MATERIAL,
-                unitePrice: payload.initialStock.uniterPrice,
-                quantityAdd: payload.initialStock.quantityAdd,
-                date: payload.initialStock.date,
-                Journal: {
-                    create: {
-                        debitAmount: payload.initialStock.quantityAdd,
-                        narration: "Initial raw material balance",
-                    },
-                },
+                name: payload.name,
+                description: payload.description,
+                unitId: payload.unitId,
             },
         });
-    }
+        if (payload === null || payload === void 0 ? void 0 : payload.initialStock) {
+            yield tx.inventory.create({
+                data: {
+                    rawId: rawMeterial.id,
+                    date: payload.initialStock.date,
+                    unitPrice: payload.initialStock.unitPrice,
+                    quantityAdd: payload.initialStock.quantity,
+                    isClosing: true,
+                    journal: {
+                        create: {
+                            debitAmount: Number(payload.initialStock.amount),
+                            narration: "Initial raw material",
+                        },
+                    },
+                },
+            });
+        }
+    }));
     return result;
 });
 const getAllRawMaterial = () => __awaiter(void 0, void 0, void 0, function* () {
@@ -95,10 +100,48 @@ const deleteRawMaterial = (id) => __awaiter(void 0, void 0, void 0, function* ()
     });
     return result;
 });
+const createLogtoRaw = (payload) => __awaiter(void 0, void 0, void 0, function* () {
+    console.log(payload);
+    const convertLog = yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+        const inventoryData = payload === null || payload === void 0 ? void 0 : payload.items.map((item) => ({
+            rawId: item.rawId,
+            unitPrice: item.amount / item.quantity,
+            quantityAdd: item.quantity,
+            date: payload.date,
+            journal: {
+                create: {
+                    debitAmount: item.amount,
+                    narration: "Log converted to raw material",
+                },
+            },
+        }));
+        const logCategoryData = payload === null || payload === void 0 ? void 0 : payload.items.map((item) => ({
+            logCategoryId: item.logCategoryId,
+            unitPrice: item.amount / item.quantity,
+            quantityLess: item.quantity,
+            date: payload.date,
+            creditAmount: item.amount,
+        }));
+        const result = yield prisma_1.default.logToRaw.create({
+            data: {
+                voucherNo: payload.voucherNo,
+                date: payload.date,
+                inventory: {
+                    create: inventoryData,
+                },
+                logOrdByCategory: {
+                    create: logCategoryData,
+                },
+            },
+        });
+        return result;
+    }));
+});
 exports.RowMaterialsService = {
     createRawMaterial,
     getAllRawMaterial,
     getRawMaterialById,
     updateRawMaterial,
     deleteRawMaterial,
+    createLogtoRaw,
 };

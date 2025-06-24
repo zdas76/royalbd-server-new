@@ -31,7 +31,7 @@ const getAllUnit = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, voi
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
         success: true,
-        message: "Unites retrive Successfully",
+        message: "Units retrive Successfully",
         data: result,
     });
 }));

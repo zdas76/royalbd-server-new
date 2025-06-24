@@ -33,12 +33,15 @@ model SubCategory {
 }
 
 model Unit {
-  id        Int      @id @default(autoincrement())
-  name      String   @db.VarChar(20)
-  createdAt DateTime @default(now())
-  updateAt  DateTime @updatedAt
+  id          Int           @id @default(autoincrement())
+  name        String        @db.VarChar(20)
+  createdAt   DateTime      @default(now())
+  updateAt    DateTime      @updatedAt
+  RawMaterial RawMaterial[]
+  Product     Product[]
+  
 
-  @@map("unites")
+  @@map("units")
 }
 
 model AccountMainPiller {
@@ -108,9 +111,11 @@ model Product {
   minPrice      Int?
   color         String?
   size          String?
+  unitId        Int
   itemType      ItemType    @default(PRODUCT)
   isDeleted     Boolean     @default(false)
   status        Status      @default(ACTIVE)
+  unit          Unit        @relation(fields: [unitId], references: [id])
   inventory     Inventory[]
   subCategory   SubCategory @relation(fields: [subCategoryId], references: [id])
   createdAt     DateTime    @default(now())
@@ -124,9 +129,11 @@ model RawMaterial {
   id          Int         @id @default(autoincrement())
   name        String      @db.VarChar(50)
   description String?     @db.VarChar(250)
+  unitId      Int
   itemType    ItemType    @default(RAW_MATERIAL)
   isDeleted   Boolean     @default(false)
   status      Status      @default(ACTIVE)
+  unit        Unit        @relation(fields: [unitId], references: [id])
   Inventory   Inventory[]
   createdAt   DateTime    @default(now())
   updateAt    DateTime    @updatedAt
@@ -206,7 +213,7 @@ model Inventory {
   rawId           Int?
   createProductId Int?
   logToRawId      Int?
-  unitePrice      Float          @default(0.00)
+  unitPrice       Float          @default(0.00)
   quantityAdd     Float?         @default(0.00)
   quantityLess    Float?         @default(0.00)
   discount        Float?         @default(0.00)
@@ -263,7 +270,7 @@ model LogGrades {
   gradeName   String      @db.VarChar(50)
   minRadius   Float       @db.Float()
   maxRadius   Float       @db.Float()
-  unitePrice  Float
+  unitPrice   Float       @db.Float()
   status      Status      @default(ACTIVE)
   logCategory LogCategory @relation(fields: [categoryId], references: [id])
   createdAt   DateTime    @default(now())
@@ -309,20 +316,21 @@ model LogOrderItem {
 }
 
 model LogOrdByCategory {
-  id           Int       @id @default(autoincrement())
-  logOrderId   Int
-  logToRawId   Int
-  categoryId   Int
-  date         DateTime
-  unitePrice   Float
-  quantityAdd  Float
-  quantityLess Float
-  debitAmount  Float
-  creditAmount Float
-  logToRaw     LogToRaw? @relation(fields: [logToRawId], references: [id])
-  logOrder     LogOrder  @relation(fields: [logOrderId], references: [id])
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id            Int       @id @default(autoincrement())
+  logOrderId    Int?
+  logToRawId    Int?
+  logCategoryId Int
+  date          DateTime
+  unitPrice     Float
+  quantityAdd   Float?
+  quantityLess  Float?
+  debitAmount   Float?
+  creditAmount  Float?
+  status        Logstatus @default(PENDING)
+  logToRaw      LogToRaw? @relation(fields: [logToRawId], references: [id])
+  logOrder      LogOrder? @relation(fields: [logOrderId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 model CreateProduct {
@@ -333,16 +341,20 @@ model CreateProduct {
   inventory Inventory[]
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
+
+  @@map("createProduct")
 }
 
 model LogToRaw {
   id               Int                @id @default(autoincrement())
-  oucherNo         String             @unique
+  voucherNo        String             @unique
   date             DateTime
   inventory        Inventory[]
   logOrdByCategory LogOrdByCategory[]
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
+
+  @@map("log_to_raw")
 }
 
 enum ItemType {
@@ -396,4 +408,9 @@ enum PaymentType {
   PAID
   DUE
   PARTIAL
+}
+
+enum Logstatus {
+  PENDING
+  CONVERTED
 }
