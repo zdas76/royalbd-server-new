@@ -26,7 +26,19 @@ const getAllOrder = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getTotelByCategoryId = catchAsync(async (req: Request, res: Response) => {
+  const result = await GradesOrderService.getLogTotalByCagetoryId(req.query);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Log Total retrived successfully",
+    data: (result as any)[0],
+  });
+});
+
 export const OrderControllers = {
   createOrder,
   getAllOrder,
+  getTotelByCategoryId,
 };

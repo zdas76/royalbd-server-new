@@ -35,6 +35,7 @@ const createRawMaterial = async (payload: TrawMaterial) => {
             create: {
               debitAmount: Number(payload.initialStock.amount),
               narration: "Initial raw material",
+              date: payload.initialStock.date,
             },
           },
         },
@@ -124,6 +125,7 @@ const createLogtoRaw = async (payload: any) => {
           create: {
             debitAmount: item.amount,
             narration: "Log converted to raw material",
+            date: payload.date,
           },
         },
       })

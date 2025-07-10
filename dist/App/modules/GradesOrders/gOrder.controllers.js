@@ -35,7 +35,17 @@ const getAllOrder = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, vo
         data: result,
     });
 }));
+const getTotelByCategoryId = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield gOrder_service_1.GradesOrderService.getLogTotalByCagetoryId(req.query);
+    (0, sendResponse_1.default)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "Log Total retrived successfully",
+        data: result[0],
+    });
+}));
 exports.OrderControllers = {
     createOrder,
     getAllOrder,
+    getTotelByCategoryId,
 };

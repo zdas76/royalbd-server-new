@@ -10,11 +10,7 @@ const getAllOrder = async () => {
   return result;
 };
 
-
 const createGradesOrder = async (payLoad: any) => {
-  
-  console.log("Log Order",payLoad)
-
   const creadtOrder = await prisma.$transaction(async (tx) => {
     const isSupplierExistd = await tx.party.findFirst({
       where: {
@@ -27,36 +23,31 @@ const createGradesOrder = async (payLoad: any) => {
       throw new AppError(StatusCodes.NOT_FOUND, "Supplier not found");
     }
 
-    const isLogGradesExisted = await payLoad.logOrderItem.map(
-      async (item: LogOrderItem) => {
+    const isLogGradesExisted = await Promise.all(
+      payLoad.logOrderItem.map(async (item: LogOrderItem) => {
         if (item.logGradeId && item.quantity) {
-          return await prisma.logGrades.findFirst({
+          return await tx.logGrades.findFirst({
             where: { id: item.logGradeId },
           });
         }
-      }
+        return null;
+      })
     );
 
-    if (!isLogGradesExisted) {
-      throw new AppError(StatusCodes.NOT_FOUND, "Log grades item is not found");
+    if (isLogGradesExisted.some((item) => !item)) {
+      throw new AppError(
+        StatusCodes.NOT_FOUND,
+        "One or more log grades not found"
+      );
     }
 
-    const orderData = {
-      supplierId: payLoad.supplierId,
-      chalanNo: payLoad.chalanNo || null,
-      date: payLoad.date,
-      voucherNo: payLoad.voucherNo || null,
-      addQuantity: payLoad.logOrderTotalQuantity,
-      Journal: {
-        create: {
-          debitAmount: payLoad.logOrderTotalAmount,
-          narration: payLoad.narration || "",
-        },
-      },
-    };
-
     const orderInfo = await tx.logOrder.create({
-      data: orderData,
+      data: {
+        supplierId: payLoad.supplierId,
+        chalanNo: payLoad.chalanNo || null,
+        date: payLoad.date,
+        voucherNo: payLoad.voucherNo,
+      },
     });
 
     const orderItem = payLoad.logOrderItem.map((item: TlogOrderItems) => ({
@@ -69,23 +60,43 @@ const createGradesOrder = async (payLoad: any) => {
       amount: item.amount,
     }));
 
-    await tx.logOrderItem.createMany({
+    const logRes = await tx.logOrderItem.createMany({
       data: orderItem,
     });
 
-    const debitJournalItem = payLoad.debitItem.map(
-      (item: {
-        logOrderId: number;
-        accountsItemId: number;
-        debitAmount: number;
-        narration: string;
-      }) => ({
-        logOrderId: orderInfo.id,
-        accountsItemId: item.accountsItemId,
-        debitAmount: item.debitAmount,
-        narration: item?.narration || "",
-      })
-    );
+    const debitJournalItem = payLoad.debitItem
+      .map(
+        (item: {
+          logOrderId: number;
+          accountsItemId: number;
+          debitAmount: number;
+          narration: string;
+        }) => {
+          if (item.debitAmount && item.accountsItemId) {
+            return {
+              logOrderId: orderInfo.id,
+              accountsItemId: item.accountsItemId,
+              debitAmount: item.debitAmount,
+              narration: item.narration || "",
+              date: payLoad.date,
+            };
+          }
+          return null;
+        }
+      )
+      .filter(Boolean);
+
+    console.log(debitJournalItem);
+
+    if (debitJournalItem) {
+      await Promise.all(
+        debitJournalItem.map((journal: any) =>
+          tx.journal.create({
+            data: journal,
+          })
+        )
+      );
+    }
 
     if (!Array.isArray(payLoad.creditItem) || payLoad.creditItem.length === 0) {
       throw new Error("Invalid data: Credit item must be a non-empty");
@@ -102,30 +113,71 @@ const createGradesOrder = async (payLoad: any) => {
         accountsItemId: item.accountsItemId,
         creditAmount: item.creditAmount,
         narration: item?.narration || "",
+        date: payLoad.date,
       })
     );
 
-    const journaData = [...debitJournalItem, ...creditJournalItem];
-
-    const createJourna = await tx.journal.createMany({
-      data: journaData,
+    await tx.journal.createMany({
+      data: creditJournalItem,
     });
 
-    return orderInfo.id;
+    const logItemByCategoryData = payLoad.logItemsByCategory.map(
+      (item: {
+        logId: any;
+        date: any;
+        unitPriceByCategory: any;
+        quantity: any;
+        amount: any;
+      }) => ({
+        logOrderId: orderInfo.id,
+        logCategoryId: item.logId,
+        date: payLoad.date,
+        quantityAdd: item.quantity,
+        debitAmount: item.amount,
+        unitPrice: item.unitPriceByCategory,
+      })
+    );
+
+    await tx.logOrdByCategory.createMany({
+      data: logItemByCategoryData,
+    });
+
+    const result = await tx.logOrder.findFirst({
+      where: {
+        id: orderInfo.id,
+      },
+      include: {
+        logOrderItem: true,
+        logOrdByCategory: true,
+      },
+    });
+    return result;
   });
 
-  const result = await prisma.logOrder.findFirst({
-    where: {
-      id: creadtOrder,
-    },
-    include: {
-      logOrderItem: true,
-    },
-  });
+  return creadtOrder;
+};
+
+//Get Log Total value
+const getLogTotalByCagetoryId = async (payLoad: any) => {
+  const result = await prisma.$queryRaw`
+  
+SELECT 
+i.logCategoryId,
+
+ SUM(IFNULL(i.quantityAdd, 0) - IFNULL(i.quantityLess, 0)) AS netQuantity,
+ SUM(IFNULL(i.debitAmount, 0)- IFNULL(i.creditAmount, 0)) AS netAmount
+    
+  FROM log_order_by_category i
+  WHERE i.logCategoryId = ${payLoad.logCategoryId} AND i.date >= ${new Date(
+    payLoad.date
+  )}
+  GROUP BY i.logCategoryId`;
+
   return result;
 };
 
 export const GradesOrderService = {
   createGradesOrder,
   getAllOrder,
+  getLogTotalByCagetoryId,
 };

@@ -45,6 +45,7 @@ const createRawMaterial = (payload) => __awaiter(void 0, void 0, void 0, functio
                         create: {
                             debitAmount: Number(payload.initialStock.amount),
                             narration: "Initial raw material",
+                            date: payload.initialStock.date,
                         },
                     },
                 },
@@ -112,6 +113,7 @@ const createLogtoRaw = (payload) => __awaiter(void 0, void 0, void 0, function* 
                 create: {
                     debitAmount: item.amount,
                     narration: "Log converted to raw material",
+                    date: payload.date,
                 },
             },
         }));

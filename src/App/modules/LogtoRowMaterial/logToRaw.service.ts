@@ -3,7 +3,7 @@ import prisma from "../../../shared/prisma";
 import AppError from "../../errors/AppError";
 import { LogCategory } from "@prisma/client";
 
-const createCategoryIntoDB = async (payLoad: LogCategory) => {
+const createLogToRowIntoDB = async (payLoad: LogCategory) => {
   //   const result = await prisma;
   const isExisted = await prisma.logCategory.findUnique({
     where: {
@@ -51,7 +51,7 @@ const updateLogCategoryById = async (id: number, payLoad: LogCategory) => {
 };
 
 export const LogToRawService = {
-  createCategoryIntoDB,
+  createLogToRowIntoDB,
   getAllLogCategory,
   getLogCategoryById,
   updateLogCategoryById,

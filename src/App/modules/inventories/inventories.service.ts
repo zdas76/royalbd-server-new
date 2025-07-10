@@ -27,7 +27,8 @@ const getInventoryById = async (id: number) => {
 
 const getInventoryAggValueById = async (query: any) => {
   console.log(query);
-  if (query.itemType == "product") {
+
+  if (query.itemType === "product") {
     const getDate = await prisma.inventory.findFirst({
       where: {
         productId: Number(query.productId),
@@ -36,6 +37,12 @@ const getInventoryAggValueById = async (query: any) => {
 
       orderBy: [{ id: "desc" }],
     });
+
+    console.log(getDate);
+
+    if (!getDate?.date) {
+      throw new AppError(StatusCodes.NOT_FOUND, "date not found");
+    }
 
     const result = await prisma.$queryRaw`
   SELECT 
@@ -52,7 +59,7 @@ const getInventoryAggValueById = async (query: any) => {
     return result;
   }
 
-  if (query.itemType == "raw") {
+  if (query.itemType === "raw") {
     const getDate = await prisma.inventory.findFirst({
       where: {
         rawId: Number(query.rawId),
@@ -62,8 +69,10 @@ const getInventoryAggValueById = async (query: any) => {
       orderBy: [{ id: "desc" }],
     });
 
-    if (getDate?.date) {
-      throw new AppError(StatusCodes.NOT_FOUND, "date nor found");
+    console.log(getDate);
+
+    if (!getDate?.date) {
+      throw new AppError(StatusCodes.NOT_FOUND, "date not found");
     }
 
     const result = await prisma.$queryRaw`
@@ -71,11 +80,11 @@ const getInventoryAggValueById = async (query: any) => {
     i.rawId,
     
     SUM(IFNULL(i.quantityAdd, 0) - IFNULL(i.quantityLess, 0)) AS netQuantity,
-    SUM(IFNULL(j.debitAmount, 0)- IFNULL(j.creditAmount, 0)) AS netAmount,
+    SUM(IFNULL(j.debitAmount, 0) - IFNULL(j.creditAmount, 0)) AS netAmount
     
   FROM inventories i
   LEFT JOIN journals j ON j.inventoryItemId = i.id
-  WHERE i.productId = ${query.rawId} AND i.date=${getDate?.date}
+  WHERE i.rawId = ${query.rawId} AND i.date=${getDate?.date}
   GROUP BY i.rawId`;
 
     return result;

@@ -63,10 +63,22 @@ const createPaymentdVoucher = catchAsync(
   }
 );
 
+const getTotalByAccountId = catchAsync(async (req: Request, res: Response) => {
+  const result = await JurnalService.getItemTotalByAccountId(req.query);
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "Payment created successfully",
+    data: result,
+  });
+});
+
 export const JournalControllers = {
   addPurcherReceived,
   createSalseVoucher,
   createReceiptdVoucher,
   createPaymentdVoucher,
   getAllVoucher,
+  getTotalByAccountId,
 };

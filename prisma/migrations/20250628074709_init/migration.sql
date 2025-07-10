@@ -171,26 +171,6 @@ CREATE TABLE `bank_transactions` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `transaction_info` (
-    `id` INTEGER NOT NULL AUTO_INCREMENT,
-    `date` DATETIME(3) NOT NULL,
-    `voucherNo` VARCHAR(191) NOT NULL,
-    `invoiceNo` VARCHAR(191) NULL,
-    `partyId` INTEGER NULL,
-    `customerId` INTEGER NULL,
-    `isClosing` BOOLEAN NOT NULL DEFAULT false,
-    `jurnaStatus` ENUM('UNCHECKED', 'CHECKED', 'CLOSED') NOT NULL DEFAULT 'UNCHECKED',
-    `voucherType` ENUM('SALES', 'PURCHASE', 'RECEIPT', 'PAYMENT', 'JOURNAL', 'CONTRA') NOT NULL,
-    `paymentType` ENUM('PAID', 'DUE', 'PARTIAL') NULL,
-    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
-    `updatedAt` DATETIME(3) NOT NULL,
-
-    UNIQUE INDEX `transaction_info_voucherNo_key`(`voucherNo`),
-    INDEX `transaction_info_date_voucherNo_voucherType_idx`(`date`, `voucherNo`, `voucherType`),
-    PRIMARY KEY (`id`)
-) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
--- CreateTable
 CREATE TABLE `inventories` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `date` DATETIME(3) NOT NULL,
@@ -212,6 +192,25 @@ CREATE TABLE `inventories` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
+CREATE TABLE `transaction_info` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `date` DATETIME(3) NOT NULL,
+    `voucherNo` VARCHAR(191) NOT NULL,
+    `invoiceNo` VARCHAR(191) NULL,
+    `partyId` INTEGER NULL,
+    `customerId` INTEGER NULL,
+    `jurnaStatus` ENUM('UNCHECKED', 'CHECKED', 'CLOSED') NOT NULL DEFAULT 'UNCHECKED',
+    `voucherType` ENUM('SALES', 'PURCHASE', 'RECEIPT', 'PAYMENT', 'JOURNAL', 'CONTRA') NOT NULL,
+    `paymentType` ENUM('PAID', 'DUE', 'PARTIAL') NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+
+    UNIQUE INDEX `transaction_info_voucherNo_key`(`voucherNo`),
+    INDEX `transaction_info_date_voucherNo_voucherType_idx`(`date`, `voucherNo`, `voucherType`),
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
 CREATE TABLE `journals` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `transectionId` INTEGER NULL,
@@ -219,9 +218,11 @@ CREATE TABLE `journals` (
     `inventoryItemId` INTEGER NULL,
     `logOrderId` INTEGER NULL,
     `createProductId` INTEGER NULL,
+    `date` DATETIME(3) NOT NULL,
     `creditAmount` DOUBLE NULL DEFAULT 0.00,
     `debitAmount` DOUBLE NULL DEFAULT 0.00,
     `narration` VARCHAR(191) NULL,
+    `isClosing` BOOLEAN NOT NULL DEFAULT false,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
@@ -245,7 +246,6 @@ CREATE TABLE `logcategories` (
 CREATE TABLE `logGrades` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `categoryId` INTEGER NOT NULL,
-    `unitId` INTEGER NOT NULL,
     `gradeName` VARCHAR(50) NOT NULL,
     `minRadius` FLOAT NOT NULL,
     `maxRadius` FLOAT NOT NULL,
@@ -278,7 +278,6 @@ CREATE TABLE `log_orders` (
 CREATE TABLE `log_Order_Items` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `logOrderId` INTEGER NOT NULL,
-    `logcagoryId` INTEGER NOT NULL,
     `logGradeId` INTEGER NOT NULL,
     `radis` DOUBLE NOT NULL,
     `height` DOUBLE NOT NULL,
@@ -291,7 +290,7 @@ CREATE TABLE `log_Order_Items` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `LogOrdByCategory` (
+CREATE TABLE `log_order_by_category` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `logOrderId` INTEGER NULL,
     `logToRawId` INTEGER NULL,
@@ -306,6 +305,7 @@ CREATE TABLE `LogOrdByCategory` (
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
+    INDEX `log_order_by_category_logCategoryId_idx`(`logCategoryId`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -322,14 +322,14 @@ CREATE TABLE `createProduct` (
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
-CREATE TABLE `lot_to_raw` (
+CREATE TABLE `log_to_raw` (
     `id` INTEGER NOT NULL AUTO_INCREMENT,
     `voucherNo` VARCHAR(191) NOT NULL,
     `date` DATETIME(3) NOT NULL,
     `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
     `updatedAt` DATETIME(3) NOT NULL,
 
-    UNIQUE INDEX `lot_to_raw_voucherNo_key`(`voucherNo`),
+    UNIQUE INDEX `log_to_raw_voucherNo_key`(`voucherNo`),
     PRIMARY KEY (`id`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
@@ -355,12 +355,6 @@ ALTER TABLE `bank_transactions` ADD CONSTRAINT `bank_transactions_bankAccountId_
 ALTER TABLE `bank_transactions` ADD CONSTRAINT `bank_transactions_transectionId_fkey` FOREIGN KEY (`transectionId`) REFERENCES `transaction_info`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `transaction_info` ADD CONSTRAINT `transaction_info_partyId_fkey` FOREIGN KEY (`partyId`) REFERENCES `parties`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE `transaction_info` ADD CONSTRAINT `transaction_info_customerId_fkey` FOREIGN KEY (`customerId`) REFERENCES `customers`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE `inventories` ADD CONSTRAINT `inventories_productId_fkey` FOREIGN KEY (`productId`) REFERENCES `products`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -370,7 +364,13 @@ ALTER TABLE `inventories` ADD CONSTRAINT `inventories_rawId_fkey` FOREIGN KEY (`
 ALTER TABLE `inventories` ADD CONSTRAINT `inventories_createProductId_fkey` FOREIGN KEY (`createProductId`) REFERENCES `createProduct`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `inventories` ADD CONSTRAINT `inventories_logToRawId_fkey` FOREIGN KEY (`logToRawId`) REFERENCES `lot_to_raw`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `inventories` ADD CONSTRAINT `inventories_logToRawId_fkey` FOREIGN KEY (`logToRawId`) REFERENCES `log_to_raw`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `transaction_info` ADD CONSTRAINT `transaction_info_partyId_fkey` FOREIGN KEY (`partyId`) REFERENCES `parties`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `transaction_info` ADD CONSTRAINT `transaction_info_customerId_fkey` FOREIGN KEY (`customerId`) REFERENCES `customers`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `journals` ADD CONSTRAINT `journals_transectionId_fkey` FOREIGN KEY (`transectionId`) REFERENCES `transaction_info`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
@@ -388,9 +388,6 @@ ALTER TABLE `journals` ADD CONSTRAINT `journals_logOrderId_fkey` FOREIGN KEY (`l
 ALTER TABLE `journals` ADD CONSTRAINT `journals_createProductId_fkey` FOREIGN KEY (`createProductId`) REFERENCES `createProduct`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `logGrades` ADD CONSTRAINT `logGrades_unitId_fkey` FOREIGN KEY (`unitId`) REFERENCES `units`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE `logGrades` ADD CONSTRAINT `logGrades_categoryId_fkey` FOREIGN KEY (`categoryId`) REFERENCES `logcategories`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -400,7 +397,7 @@ ALTER TABLE `log_orders` ADD CONSTRAINT `log_orders_supplierId_fkey` FOREIGN KEY
 ALTER TABLE `log_Order_Items` ADD CONSTRAINT `log_Order_Items_logOrderId_fkey` FOREIGN KEY (`logOrderId`) REFERENCES `log_orders`(`id`) ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `LogOrdByCategory` ADD CONSTRAINT `LogOrdByCategory_logToRawId_fkey` FOREIGN KEY (`logToRawId`) REFERENCES `lot_to_raw`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `log_order_by_category` ADD CONSTRAINT `log_order_by_category_logToRawId_fkey` FOREIGN KEY (`logToRawId`) REFERENCES `log_to_raw`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE `LogOrdByCategory` ADD CONSTRAINT `LogOrdByCategory_logOrderId_fkey` FOREIGN KEY (`logOrderId`) REFERENCES `log_orders`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE `log_order_by_category` ADD CONSTRAINT `log_order_by_category_logOrderId_fkey` FOREIGN KEY (`logOrderId`) REFERENCES `log_orders`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;

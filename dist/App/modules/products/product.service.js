@@ -50,6 +50,7 @@ const createProduct = (payload) => __awaiter(void 0, void 0, void 0, function* (
                         create: {
                             debitAmount: Number(payload.initialStock.amount),
                             narration: "Initial Product",
+                            date: payload.initialStock.date,
                         },
                     },
                 },

@@ -37,7 +37,7 @@ const getInventoryById = (id) => __awaiter(void 0, void 0, void 0, function* () 
 });
 const getInventoryAggValueById = (query) => __awaiter(void 0, void 0, void 0, function* () {
     console.log(query);
-    if (query.itemType == "product") {
+    if (query.itemType === "product") {
         const getDate = yield prisma_1.default.inventory.findFirst({
             where: {
                 productId: Number(query.productId),
@@ -45,6 +45,10 @@ const getInventoryAggValueById = (query) => __awaiter(void 0, void 0, void 0, fu
             },
             orderBy: [{ id: "desc" }],
         });
+        console.log(getDate);
+        if (!(getDate === null || getDate === void 0 ? void 0 : getDate.date)) {
+            throw new AppError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "date not found");
+        }
         const result = yield prisma_1.default.$queryRaw `
   SELECT 
     i.productId,
@@ -58,7 +62,7 @@ const getInventoryAggValueById = (query) => __awaiter(void 0, void 0, void 0, fu
   GROUP BY i.productId`;
         return result;
     }
-    if (query.itemType == "raw") {
+    if (query.itemType === "raw") {
         const getDate = yield prisma_1.default.inventory.findFirst({
             where: {
                 rawId: Number(query.rawId),
@@ -66,19 +70,20 @@ const getInventoryAggValueById = (query) => __awaiter(void 0, void 0, void 0, fu
             },
             orderBy: [{ id: "desc" }],
         });
-        if (getDate === null || getDate === void 0 ? void 0 : getDate.date) {
-            throw new AppError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "date nor found");
+        console.log(getDate);
+        if (!(getDate === null || getDate === void 0 ? void 0 : getDate.date)) {
+            throw new AppError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "date not found");
         }
         const result = yield prisma_1.default.$queryRaw `
   SELECT 
     i.rawId,
     
     SUM(IFNULL(i.quantityAdd, 0) - IFNULL(i.quantityLess, 0)) AS netQuantity,
-    SUM(IFNULL(j.debitAmount, 0)- IFNULL(j.creditAmount, 0)) AS netAmount,
+    SUM(IFNULL(j.debitAmount, 0) - IFNULL(j.creditAmount, 0)) AS netAmount
     
   FROM inventories i
   LEFT JOIN journals j ON j.inventoryItemId = i.id
-  WHERE i.productId = ${query.rawId} AND i.date=${getDate === null || getDate === void 0 ? void 0 : getDate.date}
+  WHERE i.rawId = ${query.rawId} AND i.date=${getDate === null || getDate === void 0 ? void 0 : getDate.date}
   GROUP BY i.rawId`;
         return result;
     }

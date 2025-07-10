@@ -3,7 +3,7 @@ import { LogtoRawControllers } from "./logToRaw.controllers";
 
 const router = express.Router();
 
-router.post("/", LogtoRawControllers.createLogCagetory);
+router.post("/", LogtoRawControllers.createLogToRow);
 
 router.get("/", LogtoRawControllers.getLogCagetory);
 

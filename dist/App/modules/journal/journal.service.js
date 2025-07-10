@@ -99,6 +99,7 @@ const createPurchestReceivedIntoDB = (payload) => __awaiter(void 0, void 0, void
                             transectionId: createTransactionInfo.id,
                             debitAmount: item.debitAmount,
                             narration: item.narration || "",
+                            date: payload.date,
                         },
                     },
                 };
@@ -115,6 +116,7 @@ const createPurchestReceivedIntoDB = (payload) => __awaiter(void 0, void 0, void
                             transectionId: createTransactionInfo.id,
                             debitAmount: new client_1.Prisma.Decimal(item.debitAmount),
                             narration: item.narration || "",
+                            date: payload.date,
                         },
                     },
                 };
@@ -133,6 +135,7 @@ const createPurchestReceivedIntoDB = (payload) => __awaiter(void 0, void 0, void
             accountsItemId: item === null || item === void 0 ? void 0 : item.costItemId,
             debitAmount: new client_1.Prisma.Decimal(item.amount || 0),
             narration: item.narration || "",
+            date: payload.date,
         }));
         // Step 7: Prepare Journal Credit Entries (For Payment Accounts)
         const journalCreditItems = payload.creditItem.map((item) => ({
@@ -140,6 +143,7 @@ const createPurchestReceivedIntoDB = (payload) => __awaiter(void 0, void 0, void
             accountsItemId: item.accountsItemId,
             creditAmount: new client_1.Prisma.Decimal(item.amount || 0),
             narration: (item === null || item === void 0 ? void 0 : item.narration) || "",
+            date: payload.date,
         }));
         const journalItems = [...journalCostItems, ...journalCreditItems];
         const createJournal = yield tx.journal.createMany({
@@ -236,6 +240,7 @@ const createSalesVoucher = (payload) => __awaiter(void 0, void 0, void 0, functi
                     transectionId: createTransactionInfo.id,
                     creditAmount: item.creditAmount,
                     narration: item.narration || "",
+                    date: payload.date,
                 },
             },
         }));
@@ -254,6 +259,7 @@ const createSalesVoucher = (payload) => __awaiter(void 0, void 0, void 0, functi
             accountsItemId: item.accountsItemId,
             debitAmount: new client_1.Prisma.Decimal(item.debitAmount || 0).toNumber(),
             narration: (item === null || item === void 0 ? void 0 : item.narration) || "",
+            date: payload.date,
         }));
         if (payload.totalDiscount && payload.totalDiscount > 0) {
             const discountItem = yield tx.accountsItem.findFirst({
@@ -267,8 +273,9 @@ const createSalesVoucher = (payload) => __awaiter(void 0, void 0, void 0, functi
                 journalDebitItems.push({
                     transectionId: createTransactionInfo.id,
                     accountsItemId: parseInt(discountItem.id),
-                    debitAmount: new client_1.Prisma.Decimal(payload.totalDiscount).toNumber(),
+                    debitAmount: payload.totalDiscount,
                     narration: "",
+                    date: payload.date,
                 });
             }
         }
@@ -328,6 +335,7 @@ const createPaymentVoucher = (payload) => __awaiter(void 0, void 0, void 0, func
                     accountsItemId: item.accountsItemId,
                     creditAmount: new client_1.Prisma.Decimal(item.amount || 0).toNumber(),
                     narration: (item === null || item === void 0 ? void 0 : item.narration) || "",
+                    date: payload.date,
                 });
         });
         if (!Array.isArray(payload.debitItem) || payload.debitItem.length === 0) {
@@ -339,6 +347,7 @@ const createPaymentVoucher = (payload) => __awaiter(void 0, void 0, void 0, func
             accountsItemId: item.accountsItemId,
             debitAmount: new client_1.Prisma.Decimal(item.amount || 0).toNumber(),
             narration: (item === null || item === void 0 ? void 0 : item.narration) || "",
+            date: payload.date,
         }));
         const journalItems = [...journalDebitItems, ...journalCreditItems];
         const createJournal = yield tx.journal.createMany({
@@ -397,9 +406,9 @@ const createReceiptVoucher = (payload) => __awaiter(void 0, void 0, void 0, func
                     accountsItemId: item.accountsItemId,
                     debitAmount: new client_1.Prisma.Decimal(item.amount || 0).toNumber(),
                     narration: (item === null || item === void 0 ? void 0 : item.narration) || "",
+                    date: payload.date,
                 });
         });
-        console.log(journalDebitItems);
         if (!Array.isArray(payload.creditItem) || payload.creditItem.length === 0) {
             throw new Error("Invalid data: salseItem must be a non-empty array");
         }
@@ -409,6 +418,7 @@ const createReceiptVoucher = (payload) => __awaiter(void 0, void 0, void 0, func
             accountsItemId: item.accountsItemId,
             creditAmount: new client_1.Prisma.Decimal(item.amount || 0).toNumber(),
             narration: (item === null || item === void 0 ? void 0 : item.narration) || "",
+            date: payload.date,
         }));
         const journalItems = [...journalDebitItems, ...journalCreditItems];
         const createJournal = yield tx.journal.createMany({
@@ -424,6 +434,27 @@ const createJournalVoucher = () => __awaiter(void 0, void 0, void 0, function* (
 const createQantaVoucher = () => __awaiter(void 0, void 0, void 0, function* () {
     console.log("first");
 });
+const getItemTotalByAccountId = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
+    const getDate = yield prisma_1.default.journal.findFirst({
+        where: {
+            accountsItemId: Number(payLoad.productId),
+            isClosing: true,
+        },
+        orderBy: [{ id: "desc" }],
+    });
+    const result = yield prisma_1.default.$queryRaw `
+  
+SELECT 
+j.accountsItemId,
+ 
+ SUM(IFNULL(j.debitAmount, 0)- IFNULL(j.creditAmount, 0)) AS netAmount
+    
+  FROM journals j
+  LEFT JOIN transaction_info t ON t.id = j.transectionId
+  WHERE j.accountsItemId = ${payLoad.accountsItemId} AND  j.date >= ${(getDate === null || getDate === void 0 ? void 0 : getDate.date) || new Date(payLoad.date)} 
+  GROUP BY j.accountsItemId`;
+    return result[0];
+});
 exports.JurnalService = {
     createPurchestReceivedIntoDB,
     createSalesVoucher,
@@ -434,4 +465,5 @@ exports.JurnalService = {
     createReceiptVoucher,
     createJournalVoucher,
     createQantaVoucher,
+    getItemTotalByAccountId,
 };

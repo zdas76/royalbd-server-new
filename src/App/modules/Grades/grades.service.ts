@@ -5,7 +5,6 @@ import { StatusCodes } from "http-status-codes";
 import { TLogGradesTypes } from "./grades.types";
 
 const crateGradeIntoDB = async (payLoad: TLogGradesTypes) => {
-  console.log(payLoad);
   const isExistCategory = await prisma.logCategory.findUnique({
     where: {
       id: payLoad.categoryId,
@@ -33,18 +32,6 @@ const crateGradeIntoDB = async (payLoad: TLogGradesTypes) => {
   const result = await prisma.logGrades.create({
     data: payLoad,
   });
-
-  if (payLoad.initialStock) {
-    await prisma.logOrdByCategory.create({
-      data: {
-        logCategoryId: payLoad.categoryId,
-        quantityAdd: payLoad.initialStock.quantity,
-        debitAmount: payLoad.initialStock.amount,
-        unitPrice: payLoad.initialStock.amount / payLoad.initialStock.quantity,
-        date: payLoad.initialStock.date,
-      },
-    });
-  }
 
   return result;
 };
@@ -85,6 +72,7 @@ const updateGradeFromToDBById = async (
   });
   return result;
 };
+
 export const GradesService = {
   crateGradeIntoDB,
   getGradeFromToDB,

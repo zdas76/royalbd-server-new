@@ -18,9 +18,6 @@ const createBankAccount = async (payload: TBankAccount) => {
   if (accountExisted) {
     throw new AppError(StatusCodes.BAD_REQUEST, "This account already existed");
   }
-  if (!payload.initialBalance) {
-    throw new AppError(StatusCodes.BAD_REQUEST, "No Balance Found");
-  }
 
   const result = await prisma.$transaction(async (tx) => {
     const result = await tx.bankAccount.create({
@@ -34,8 +31,8 @@ const createBankAccount = async (payload: TBankAccount) => {
     await tx.bankTransaction.create({
       data: {
         bankAccountId: result.id,
-        date: payload.date,
-        debitAmount: payload.initialBalance,
+        date: new Date(payload.date),
+        debitAmount: payload.initalAmount,
         isClosing: true,
       },
     });

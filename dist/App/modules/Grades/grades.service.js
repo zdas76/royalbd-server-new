@@ -17,7 +17,6 @@ const prisma_1 = __importDefault(require("../../../shared/prisma"));
 const AppError_1 = __importDefault(require("../../errors/AppError"));
 const http_status_codes_1 = require("http-status-codes");
 const crateGradeIntoDB = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(payLoad);
     const isExistCategory = yield prisma_1.default.logCategory.findUnique({
         where: {
             id: payLoad.categoryId,
@@ -38,17 +37,6 @@ const crateGradeIntoDB = (payLoad) => __awaiter(void 0, void 0, void 0, function
     const result = yield prisma_1.default.logGrades.create({
         data: payLoad,
     });
-    if (payLoad.initialStock) {
-        yield prisma_1.default.logOrdByCategory.create({
-            data: {
-                logCategoryId: payLoad.categoryId,
-                quantityAdd: payLoad.initialStock.quantity,
-                debitAmount: payLoad.initialStock.amount,
-                unitPrice: payLoad.initialStock.amount / payLoad.initialStock.quantity,
-                date: payLoad.initialStock.date,
-            },
-        });
-    }
     return result;
 });
 const getGradeFromToDB = () => __awaiter(void 0, void 0, void 0, function* () {

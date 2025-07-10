@@ -65,6 +65,7 @@ const createProductInfo = async (payLoad: any) => {
       },
       debitAmount: item.amount,
       narration: item.narration || "",
+      date: payLoad.date,
     }));
 
     // step 4: Prepare product Journal
@@ -74,6 +75,7 @@ const createProductInfo = async (payLoad: any) => {
       },
       debitAmount: payLoad?.product?.amount,
       narration: payLoad?.product?.narration || "",
+      date: payLoad.date,
     };
 
     //Step: 5: create Raw Material Journal
@@ -89,6 +91,7 @@ const createProductInfo = async (payLoad: any) => {
         },
         creditAmount: payLoad?.product?.amount,
         narration: payLoad?.product?.narration || "",
+        date: payLoad.date,
       })
     );
     const journalItem = [

@@ -28,9 +28,6 @@ const createBankAccount = (payload) => __awaiter(void 0, void 0, void 0, functio
     if (accountExisted) {
         throw new AppError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "This account already existed");
     }
-    if (!payload.initialBalance) {
-        throw new AppError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "No Balance Found");
-    }
     const result = yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
         const result = yield tx.bankAccount.create({
             data: {
@@ -42,8 +39,8 @@ const createBankAccount = (payload) => __awaiter(void 0, void 0, void 0, functio
         yield tx.bankTransaction.create({
             data: {
                 bankAccountId: result.id,
-                date: payload.date,
-                debitAmount: payload.initialBalance,
+                date: new Date(payload.date),
+                debitAmount: payload.initalAmount,
                 isClosing: true,
             },
         });

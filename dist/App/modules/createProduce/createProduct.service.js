@@ -62,6 +62,7 @@ const createProductInfo = (payLoad) => __awaiter(void 0, void 0, void 0, functio
             },
             debitAmount: item.amount,
             narration: item.narration || "",
+            date: payLoad.date,
         }));
         // step 4: Prepare product Journal
         const productJournal = {
@@ -70,6 +71,7 @@ const createProductInfo = (payLoad) => __awaiter(void 0, void 0, void 0, functio
             },
             debitAmount: (_d = payLoad === null || payLoad === void 0 ? void 0 : payLoad.product) === null || _d === void 0 ? void 0 : _d.amount,
             narration: ((_e = payLoad === null || payLoad === void 0 ? void 0 : payLoad.product) === null || _e === void 0 ? void 0 : _e.narration) || "",
+            date: payLoad.date,
         };
         //Step: 5: create Raw Material Journal
         const rowMaterialJournal = payLoad.rowMaterials.map((item) => {
@@ -80,6 +82,7 @@ const createProductInfo = (payLoad) => __awaiter(void 0, void 0, void 0, functio
                 },
                 creditAmount: (_a = payLoad === null || payLoad === void 0 ? void 0 : payLoad.product) === null || _a === void 0 ? void 0 : _a.amount,
                 narration: ((_b = payLoad === null || payLoad === void 0 ? void 0 : payLoad.product) === null || _b === void 0 ? void 0 : _b.narration) || "",
+                date: payLoad.date,
             });
         });
         const journalItem = [

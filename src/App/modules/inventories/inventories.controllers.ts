@@ -62,7 +62,7 @@ const getInventoryAggigetValue = catchAsync(
       statusCode: StatusCodes.OK,
       success: true,
       message: "Parties retrived Successfully",
-      data: result,
+      data: result[0],
     });
   }
 );

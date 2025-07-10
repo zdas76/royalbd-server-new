@@ -43,6 +43,7 @@ const createProduct = async (payload: TcreateProduct) => {
             create: {
               debitAmount: Number(payload.initialStock.amount),
               narration: "Initial Product",
+              date: payload.initialStock.date,
             },
           },
         },

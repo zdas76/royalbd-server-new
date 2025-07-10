@@ -14,6 +14,7 @@ route.post("/payment", journal_controllers_1.JournalControllers.createPaymentdVo
 route.post("/journal", journal_controllers_1.JournalControllers.addPurcherReceived);
 route.post("/contra", journal_controllers_1.JournalControllers.addPurcherReceived);
 route.get("/", journal_controllers_1.JournalControllers.getAllVoucher);
+route.get("/ledgerTotal", journal_controllers_1.JournalControllers.getTotalByAccountId);
 route.get("/:id");
 route.put("/");
 route.delete("/");

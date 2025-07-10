@@ -32,31 +32,24 @@ const createGradesOrder = (payLoad) => __awaiter(void 0, void 0, void 0, functio
         if (!isSupplierExistd) {
             throw new AppError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "Supplier not found");
         }
-        const isLogGradesExisted = yield payLoad.logOrderItem.map((item) => __awaiter(void 0, void 0, void 0, function* () {
+        const isLogGradesExisted = yield Promise.all(payLoad.logOrderItem.map((item) => __awaiter(void 0, void 0, void 0, function* () {
             if (item.logGradeId && item.quantity) {
-                return yield prisma_1.default.logGrades.findFirst({
+                return yield tx.logGrades.findFirst({
                     where: { id: item.logGradeId },
                 });
             }
-        }));
-        if (!isLogGradesExisted) {
-            throw new AppError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "Log grades item is not found");
+            return null;
+        })));
+        if (isLogGradesExisted.some((item) => !item)) {
+            throw new AppError_1.default(http_status_codes_1.StatusCodes.NOT_FOUND, "One or more log grades not found");
         }
-        const orderData = {
-            supplierId: payLoad.supplierId,
-            chalanNo: payLoad.chalanNo || null,
-            date: payLoad.date,
-            voucherNo: payLoad.voucherNo || null,
-            addQuantity: payLoad.logOrderTotalQuantity,
-            Journal: {
-                create: {
-                    debitAmount: payLoad.logOrderTotalAmount,
-                    narration: payLoad.narration || "",
-                },
-            },
-        };
         const orderInfo = yield tx.logOrder.create({
-            data: orderData,
+            data: {
+                supplierId: payLoad.supplierId,
+                chalanNo: payLoad.chalanNo || null,
+                date: payLoad.date,
+                voucherNo: payLoad.voucherNo,
+            },
         });
         const orderItem = payLoad.logOrderItem.map((item) => ({
             logOrderId: orderInfo.id,
@@ -67,15 +60,29 @@ const createGradesOrder = (payLoad) => __awaiter(void 0, void 0, void 0, functio
             u_price: item.u_price,
             amount: item.amount,
         }));
-        yield tx.logOrderItem.createMany({
+        const logRes = yield tx.logOrderItem.createMany({
             data: orderItem,
         });
-        const debitJournalItem = payLoad.debitItem.map((item) => ({
-            logOrderId: orderInfo.id,
-            accountsItemId: item.accountsItemId,
-            debitAmount: item.debitAmount,
-            narration: (item === null || item === void 0 ? void 0 : item.narration) || "",
-        }));
+        const debitJournalItem = payLoad.debitItem
+            .map((item) => {
+            if (item.debitAmount && item.accountsItemId) {
+                return {
+                    logOrderId: orderInfo.id,
+                    accountsItemId: item.accountsItemId,
+                    debitAmount: item.debitAmount,
+                    narration: item.narration || "",
+                    date: payLoad.date,
+                };
+            }
+            return null;
+        })
+            .filter(Boolean);
+        console.log(debitJournalItem);
+        if (debitJournalItem) {
+            yield Promise.all(debitJournalItem.map((journal) => tx.journal.create({
+                data: journal,
+            })));
+        }
         if (!Array.isArray(payLoad.creditItem) || payLoad.creditItem.length === 0) {
             throw new Error("Invalid data: Credit item must be a non-empty");
         }
@@ -84,24 +91,52 @@ const createGradesOrder = (payLoad) => __awaiter(void 0, void 0, void 0, functio
             accountsItemId: item.accountsItemId,
             creditAmount: item.creditAmount,
             narration: (item === null || item === void 0 ? void 0 : item.narration) || "",
+            date: payLoad.date,
         }));
-        const journaData = [...debitJournalItem, ...creditJournalItem];
-        const createJourna = yield tx.journal.createMany({
-            data: journaData,
+        yield tx.journal.createMany({
+            data: creditJournalItem,
         });
-        return orderInfo.id;
+        const logItemByCategoryData = payLoad.logItemsByCategory.map((item) => ({
+            logOrderId: orderInfo.id,
+            logCategoryId: item.logId,
+            date: payLoad.date,
+            quantityAdd: item.quantity,
+            debitAmount: item.amount,
+            unitPrice: item.unitPriceByCategory,
+        }));
+        yield tx.logOrdByCategory.createMany({
+            data: logItemByCategoryData,
+        });
+        const result = yield tx.logOrder.findFirst({
+            where: {
+                id: orderInfo.id,
+            },
+            include: {
+                logOrderItem: true,
+                logOrdByCategory: true,
+            },
+        });
+        return result;
     }));
-    const result = yield prisma_1.default.logOrder.findFirst({
-        where: {
-            id: creadtOrder,
-        },
-        include: {
-            logOrderItem: true,
-        },
-    });
+    return creadtOrder;
+});
+//Get Log Total value
+const getLogTotalByCagetoryId = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield prisma_1.default.$queryRaw `
+  
+SELECT 
+i.logCategoryId,
+
+ SUM(IFNULL(i.quantityAdd, 0) - IFNULL(i.quantityLess, 0)) AS netQuantity,
+ SUM(IFNULL(i.debitAmount, 0)- IFNULL(i.creditAmount, 0)) AS netAmount
+    
+  FROM log_order_by_category i
+  WHERE i.logCategoryId = ${payLoad.logCategoryId} AND i.date >= ${new Date(payLoad.date)}
+  GROUP BY i.logCategoryId`;
     return result;
 });
 exports.GradesOrderService = {
     createGradesOrder,
     getAllOrder,
+    getLogTotalByCagetoryId,
 };

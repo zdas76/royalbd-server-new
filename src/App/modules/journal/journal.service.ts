@@ -115,6 +115,7 @@ const createPurchestReceivedIntoDB = async (payload: any) => {
               transectionId: createTransactionInfo.id,
               debitAmount: item.debitAmount,
               narration: item.narration || "",
+              date: payload.date,
             },
           },
         };
@@ -130,6 +131,7 @@ const createPurchestReceivedIntoDB = async (payload: any) => {
               transectionId: createTransactionInfo.id,
               debitAmount: new Prisma.Decimal(item.debitAmount),
               narration: item.narration || "",
+              date: payload.date,
             },
           },
         };
@@ -155,6 +157,7 @@ const createPurchestReceivedIntoDB = async (payload: any) => {
       accountsItemId: item?.costItemId,
       debitAmount: new Prisma.Decimal(item.amount || 0),
       narration: item.narration || "",
+      date: payload.date,
     }));
 
     // Step 7: Prepare Journal Credit Entries (For Payment Accounts)
@@ -163,6 +166,7 @@ const createPurchestReceivedIntoDB = async (payload: any) => {
       accountsItemId: item.accountsItemId,
       creditAmount: new Prisma.Decimal(item.amount || 0),
       narration: item?.narration || "",
+      date: payload.date,
     }));
 
     const journalItems = [...journalCostItems, ...journalCreditItems];
@@ -279,6 +283,7 @@ const createSalesVoucher = async (payload: any) => {
           transectionId: createTransactionInfo.id,
           creditAmount: item.creditAmount,
           narration: item.narration || "",
+          date: payload.date,
         },
       },
     }));
@@ -305,6 +310,7 @@ const createSalesVoucher = async (payload: any) => {
       accountsItemId: item.accountsItemId,
       debitAmount: new Prisma.Decimal(item.debitAmount || 0).toNumber(),
       narration: item?.narration || "",
+      date: payload.date,
     }));
 
     if (payload.totalDiscount && payload.totalDiscount > 0) {
@@ -320,8 +326,9 @@ const createSalesVoucher = async (payload: any) => {
         journalDebitItems.push({
           transectionId: createTransactionInfo.id,
           accountsItemId: parseInt(discountItem.id!),
-          debitAmount: new Prisma.Decimal(payload.totalDiscount).toNumber(),
+          debitAmount: payload.totalDiscount,
           narration: "",
+          date: payload.date,
         });
       }
     }
@@ -396,6 +403,7 @@ const createPaymentVoucher = async (payload: any) => {
       accountsItemId: number;
       creditAmount: number;
       narration: string;
+      date: string;
     }[] = [];
 
     payload.creditItem.map((item: any) => {
@@ -405,6 +413,7 @@ const createPaymentVoucher = async (payload: any) => {
           accountsItemId: item.accountsItemId,
           creditAmount: new Prisma.Decimal(item.amount || 0).toNumber(),
           narration: item?.narration || "",
+          date: payload.date,
         });
     });
 
@@ -418,6 +427,7 @@ const createPaymentVoucher = async (payload: any) => {
       accountsItemId: item.accountsItemId,
       debitAmount: new Prisma.Decimal(item.amount || 0).toNumber(),
       narration: item?.narration || "",
+      date: payload.date,
     }));
 
     const journalItems = [...journalDebitItems, ...journalCreditItems];
@@ -491,6 +501,7 @@ const createReceiptVoucher = async (payload: any) => {
       accountsItemId: number;
       debitAmount: number;
       narration: string;
+      date: string;
     }[] = [];
 
     payload.debitItem.map((item: any) => {
@@ -500,9 +511,9 @@ const createReceiptVoucher = async (payload: any) => {
           accountsItemId: item.accountsItemId,
           debitAmount: new Prisma.Decimal(item.amount || 0).toNumber(),
           narration: item?.narration || "",
+          date: payload.date,
         });
     });
-    console.log(journalDebitItems);
 
     if (!Array.isArray(payload.creditItem) || payload.creditItem.length === 0) {
       throw new Error("Invalid data: salseItem must be a non-empty array");
@@ -514,6 +525,7 @@ const createReceiptVoucher = async (payload: any) => {
       accountsItemId: item.accountsItemId,
       creditAmount: new Prisma.Decimal(item.amount || 0).toNumber(),
       narration: item?.narration || "",
+      date: payload.date,
     }));
 
     const journalItems = [...journalDebitItems, ...journalCreditItems];
@@ -534,6 +546,33 @@ const createQantaVoucher = async () => {
   console.log("first");
 };
 
+const getItemTotalByAccountId = async (payLoad: any) => {
+  const getDate = await prisma.journal.findFirst({
+    where: {
+      accountsItemId: Number(payLoad.productId),
+      isClosing: true,
+    },
+
+    orderBy: [{ id: "desc" }],
+  });
+
+  const result = await prisma.$queryRaw`
+  
+SELECT 
+j.accountsItemId,
+ 
+ SUM(IFNULL(j.debitAmount, 0)- IFNULL(j.creditAmount, 0)) AS netAmount
+    
+  FROM journals j
+  LEFT JOIN transaction_info t ON t.id = j.transectionId
+  WHERE j.accountsItemId = ${payLoad.accountsItemId} AND  j.date >= ${
+    getDate?.date || new Date(payLoad.date)
+  } 
+  GROUP BY j.accountsItemId`;
+
+  return (result as any[])[0];
+};
+
 export const JurnalService = {
   createPurchestReceivedIntoDB,
   createSalesVoucher,
@@ -544,4 +583,5 @@ export const JurnalService = {
   createReceiptVoucher,
   createJournalVoucher,
   createQantaVoucher,
+  getItemTotalByAccountId,
 };

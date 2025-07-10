@@ -39,7 +39,6 @@ model Unit {
   updateAt    DateTime      @updatedAt
   RawMaterial RawMaterial[]
   Product     Product[]
-  
 
   @@map("units")
 }
@@ -184,28 +183,6 @@ model BankTransaction {
   @@map("bank_transactions")
 }
 
-model TransactionInfo {
-  id              Int               @id @default(autoincrement())
-  date            DateTime
-  voucherNo       String            @unique
-  invoiceNo       String?
-  partyId         Int?
-  customerId      Int?
-  isClosing       Boolean           @default(false)
-  jurnaStatus     JurnaStatus       @default(UNCHECKED)
-  voucherType     VoucherType
-  paymentType     PaymentType?
-  bankTransaction BankTransaction[]
-  journal         Journal[]
-  party           Party?            @relation(fields: [partyId], references: [id])
-  customer        Customer?         @relation(fields: [customerId], references: [id])
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-
-  @@index([date, voucherNo, voucherType])
-  @@map("transaction_info")
-}
-
 model Inventory {
   id              Int            @id @default(autoincrement())
   date            DateTime
@@ -231,6 +208,27 @@ model Inventory {
   @@map("inventories")
 }
 
+model TransactionInfo {
+  id              Int               @id @default(autoincrement())
+  date            DateTime
+  voucherNo       String            @unique
+  invoiceNo       String?
+  partyId         Int?
+  customerId      Int?
+  jurnaStatus     JurnaStatus       @default(UNCHECKED)
+  voucherType     VoucherType
+  paymentType     PaymentType?
+  bankTransaction BankTransaction[]
+  journal         Journal[]
+  party           Party?            @relation(fields: [partyId], references: [id])
+  customer        Customer?         @relation(fields: [customerId], references: [id])
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([date, voucherNo, voucherType])
+  @@map("transaction_info")
+}
+
 model Journal {
   id              Int              @id @default(autoincrement())
   transectionId   Int?
@@ -238,9 +236,11 @@ model Journal {
   inventoryItemId Int?
   logOrderId      Int?
   createProductId Int?
+  date            DateTime         @db.Date
   creditAmount    Float?           @default(0.00)
   debitAmount     Float?           @default(0.00)
   narration       String?
+  isClosing       Boolean          @default(false)
   transactionInfo TransactionInfo? @relation(fields: [transectionId], references: [id])
   accountsItem    AccountsItem?    @relation(fields: [accountsItemId], references: [id])
   inventoryItem   Inventory?       @relation(fields: [inventoryItemId], references: [id])
@@ -291,25 +291,23 @@ model LogOrder {
   logOrderItem     LogOrderItem[]
   Journal          Journal[]
   party            Party?             @relation(fields: [supplierId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
 
   @@index([supplierId, date, voucherNo])
   @@map("log_orders")
 }
 
 model LogOrderItem {
-  id          Int      @id @default(autoincrement())
-  logOrderId  Int
-  logcagoryId Int
-  logGradeId  Int
-  radis       Float
-  height      Float
-  quantity    Float
-  u_price     Float
-  amount      Float
-  logOrder    LogOrder @relation(fields: [logOrderId], references: [id])
+  id         Int      @id @default(autoincrement())
+  logOrderId Int
+  logGradeId Int
+  radis      Float
+  height     Float
+  quantity   Float
+  u_price    Float
+  amount     Float
+  logOrder   LogOrder @relation(fields: [logOrderId], references: [id])
 
   @@index([logGradeId])
   @@map("log_Order_Items")
@@ -331,6 +329,9 @@ model LogOrdByCategory {
   logOrder      LogOrder? @relation(fields: [logOrderId], references: [id])
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  @@index([logCategoryId])
+  @@map("log_order_by_category")
 }
 
 model CreateProduct {

@@ -5,7 +5,7 @@ export type TBankAccount = {
   bankName: string;
   branceName?: string;
   accountNumber: string;
-  initialBalance: 50000;
+  initalAmount: 50000;
   date: Date;
   createdAt: Date;
   updatedAt: Date;
