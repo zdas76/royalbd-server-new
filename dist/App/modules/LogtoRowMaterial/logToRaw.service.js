@@ -16,20 +16,83 @@ exports.LogToRawService = void 0;
 const http_status_codes_1 = require("http-status-codes");
 const prisma_1 = __importDefault(require("../../../shared/prisma"));
 const AppError_1 = __importDefault(require("../../errors/AppError"));
-const createCategoryIntoDB = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
-    //   const result = await prisma;
-    const isExisted = yield prisma_1.default.logCategory.findUnique({
+const createLogToRowIntoDB = (payLoad) => __awaiter(void 0, void 0, void 0, function* () {
+    const createLogOrdrByCategory = yield prisma_1.default.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
+        var _a, _b, _c;
+        const isExistedLogCagetory = yield Promise.all(((_a = payLoad === null || payLoad === void 0 ? void 0 : payLoad.logs) === null || _a === void 0 ? void 0 : _a.map((log) => __awaiter(void 0, void 0, void 0, function* () {
+            return yield tx.logCategory.findFirst({
+                where: {
+                    id: log.logCategoryId,
+                },
+            });
+        }))) || []);
+        const invalidCategory = isExistedLogCagetory.some((category) => category === null);
+        if (invalidCategory) {
+            throw new AppError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "Log Category is not existed");
+        }
+        const isExistedRaw = yield Promise.all(((_b = payLoad === null || payLoad === void 0 ? void 0 : payLoad.logs) === null || _b === void 0 ? void 0 : _b.map((log) => __awaiter(void 0, void 0, void 0, function* () {
+            return yield tx.rawMaterial.findFirst({
+                where: {
+                    id: log.rawId,
+                },
+            });
+        }))) || []);
+        const invalidrawMaterial = isExistedRaw.some((raw) => raw === null);
+        if (invalidrawMaterial) {
+            throw new AppError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "Raw Material is not existed");
+        }
+        const createLogToRaw = yield tx.logToRaw.create({
+            data: {
+                date: new Date(payLoad.date),
+                voucherNo: payLoad.vaucher,
+            },
+        });
+        const logOrderByCategoryData = yield Promise.all((_c = payLoad === null || payLoad === void 0 ? void 0 : payLoad.logs) === null || _c === void 0 ? void 0 : _c.map((log) => __awaiter(void 0, void 0, void 0, function* () {
+            return ({
+                logCategoryId: log.logCategoryId,
+                logToRawId: createLogToRaw.id,
+                date: new Date(payLoad.date),
+                quantityLess: log.quantity,
+                creditAmount: log.amount,
+                unitPrice: Number((log.amount / log.quantity).toFixed(2)),
+            });
+        })));
+        yield tx.logOrdByCategory.createMany({
+            data: logOrderByCategoryData,
+        });
+        // Create inventory with nested journal using individual create calls
+        for (const log of payLoad.logs) {
+            const unitPrice = Number((log.amount / log.quantity).toFixed(2));
+            yield tx.inventory.create({
+                data: {
+                    date: new Date(payLoad.date),
+                    logToRawId: createLogToRaw.id,
+                    rawId: log.rawId,
+                    quantityAdd: log.quantity,
+                    unitPrice: unitPrice,
+                    journal: {
+                        create: {
+                            date: new Date(payLoad.date),
+                            creditAmount: log.amount,
+                            narration: "Log convert to raw material",
+                        },
+                    },
+                },
+            });
+        }
+        return createLogToRaw;
+    }));
+    console.log(createLogOrdrByCategory);
+    return yield prisma_1.default.logToRaw.findFirst({
         where: {
-            name: payLoad.name,
+            id: createLogOrdrByCategory.id,
+            voucherNo: createLogOrdrByCategory.voucherNo,
+        },
+        include: {
+            inventory: true,
+            logOrdByCategory: true,
         },
     });
-    if (isExisted) {
-        throw new AppError_1.default(http_status_codes_1.StatusCodes.BAD_REQUEST, "This name already existed");
-    }
-    const result = yield prisma_1.default.logCategory.create({
-        data: payLoad,
-    });
-    return result;
 });
 const getAllLogCategory = () => __awaiter(void 0, void 0, void 0, function* () {
     const result = yield prisma_1.default.logCategory.findMany();
@@ -54,7 +117,7 @@ const updateLogCategoryById = (id, payLoad) => __awaiter(void 0, void 0, void 0,
     return result;
 });
 exports.LogToRawService = {
-    createCategoryIntoDB,
+    createLogToRowIntoDB,
     getAllLogCategory,
     getLogCategoryById,
     updateLogCategoryById,

@@ -17,8 +17,8 @@ const catchAsync_1 = __importDefault(require("../../../shared/catchAsync"));
 const sendResponse_1 = __importDefault(require("../../../shared/sendResponse"));
 const http_status_codes_1 = require("http-status-codes");
 const logToRaw_service_1 = require("./logToRaw.service");
-const createLogCagetory = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield logToRaw_service_1.LogToRawService.createCategoryIntoDB(req.body);
+const createLogToRow = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield logToRaw_service_1.LogToRawService.createLogToRowIntoDB(req.body);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
         success: true,
@@ -56,7 +56,7 @@ const updateLogCagetoryById = (0, catchAsync_1.default)((req, res) => __awaiter(
     });
 }));
 exports.LogtoRawControllers = {
-    createLogCagetory,
+    createLogToRow,
     getLogCagetory,
     getLogCagetoryById,
     updateLogCagetoryById,
