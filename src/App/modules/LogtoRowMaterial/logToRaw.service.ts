@@ -114,37 +114,61 @@ const createLogToRowIntoDB = async (payLoad: any) => {
   });
 };
 
-const getAllLogCategory = async () => {
-  const result = await prisma.logCategory.findMany();
-
-  return result;
-};
-
-const getLogCategoryById = async (id: number) => {
-  const result = await prisma.logCategory.findMany({
-    where: {
-      id,
+const getAllLogToRaw = async () => {
+  const result = await prisma.logToRaw.findMany({
+    include: {
+      inventory: {
+        include: {
+          raWMaterial: {
+            select: {
+              name: true,
+            },
+          },
+          journal: {
+            select: {
+              debitAmount: true,
+            },
+          },
+        },
+        select: {
+          quantityAdd: true,
+          unitPrice: true,
+        },
+      },
     },
   });
 
   return result;
 };
 
-const updateLogCategoryById = async (id: number, payLoad: LogCategory) => {
-  console.log(payLoad);
-  const result = await prisma.logCategory.update({
+const getLogToRawById = async (id: number) => {
+  const result = await prisma.logToRaw.findFirst({
     where: {
       id,
     },
-    data: payLoad,
+    include: {
+      inventory: true,
+      logOrdByCategory: true,
+    },
   });
 
   return result;
 };
+
+// const updateLogCategoryById = async (id: number, payLoad: LogCategory) => {
+//   console.log(payLoad);
+//   const result = await prisma.logCategory.update({
+//     where: {
+//       id,
+//     },
+//     data: payLoad,
+//   });
+
+//   return result;
+// };
 
 export const LogToRawService = {
   createLogToRowIntoDB,
-  getAllLogCategory,
-  getLogCategoryById,
-  updateLogCategoryById,
+  getAllLogToRaw,
+  getLogToRawById,
 };

@@ -17,7 +17,7 @@ const createLogToRow = catchAsync(async (req: Request, res: Response) => {
 });
 
 const getLogCagetory = catchAsync(async (req: Request, res: Response) => {
-  const result = await LogToRawService.getAllLogCategory();
+  const result = await LogToRawService.getAllLogToRaw();
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -29,7 +29,7 @@ const getLogCagetory = catchAsync(async (req: Request, res: Response) => {
 
 const getLogCagetoryById = catchAsync(async (req: Request, res: Response) => {
   const id = Number(req.params.id);
-  const result = await LogToRawService.getLogCategoryById(id);
+  const result = await LogToRawService.getLogToRawById(id);
 
   sendResponse(res, {
     statusCode: StatusCodes.OK,
@@ -39,23 +39,22 @@ const getLogCagetoryById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
-const updateLogCagetoryById = catchAsync(
-  async (req: Request, res: Response) => {
-    const id = Number(req.params.id);
-    const result = await LogToRawService.updateLogCategoryById(id, req.body);
+// const updateLogCagetoryById = catchAsync(
+//   async (req: Request, res: Response) => {
+//     const id = Number(req.params.id);
+//     const result = await LogToRawService.updateLogCategoryById(id, req.body);
 
-    sendResponse(res, {
-      statusCode: StatusCodes.OK,
-      success: true,
-      message: "Log category retrived successfully",
-      data: result,
-    });
-  }
-);
+//     sendResponse(res, {
+//       statusCode: StatusCodes.OK,
+//       success: true,
+//       message: "Log category retrived successfully",
+//       data: result,
+//     });
+//   }
+// );
 
 export const LogtoRawControllers = {
   createLogToRow,
   getLogCagetory,
   getLogCagetoryById,
-  updateLogCagetoryById,
 };

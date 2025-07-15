@@ -27,7 +27,7 @@ const createLogToRow = (0, catchAsync_1.default)((req, res) => __awaiter(void 0,
     });
 }));
 const getLogCagetory = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield logToRaw_service_1.LogToRawService.getAllLogCategory();
+    const result = yield logToRaw_service_1.LogToRawService.getAllLogToRaw();
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
         success: true,
@@ -37,7 +37,7 @@ const getLogCagetory = (0, catchAsync_1.default)((req, res) => __awaiter(void 0,
 }));
 const getLogCagetoryById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const id = Number(req.params.id);
-    const result = yield logToRaw_service_1.LogToRawService.getLogCategoryById(id);
+    const result = yield logToRaw_service_1.LogToRawService.getLogToRawById(id);
     (0, sendResponse_1.default)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
         success: true,
@@ -45,19 +45,20 @@ const getLogCagetoryById = (0, catchAsync_1.default)((req, res) => __awaiter(voi
         data: result,
     });
 }));
-const updateLogCagetoryById = (0, catchAsync_1.default)((req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const id = Number(req.params.id);
-    const result = yield logToRaw_service_1.LogToRawService.updateLogCategoryById(id, req.body);
-    (0, sendResponse_1.default)(res, {
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        message: "Log category retrived successfully",
-        data: result,
-    });
-}));
+// const updateLogCagetoryById = catchAsync(
+//   async (req: Request, res: Response) => {
+//     const id = Number(req.params.id);
+//     const result = await LogToRawService.updateLogCategoryById(id, req.body);
+//     sendResponse(res, {
+//       statusCode: StatusCodes.OK,
+//       success: true,
+//       message: "Log category retrived successfully",
+//       data: result,
+//     });
+//   }
+// );
 exports.LogtoRawControllers = {
     createLogToRow,
     getLogCagetory,
     getLogCagetoryById,
-    updateLogCagetoryById,
 };

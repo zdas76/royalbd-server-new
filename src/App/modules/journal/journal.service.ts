@@ -226,7 +226,6 @@ const createSalesVoucher = async (payload: any) => {
         date: payload?.date,
         voucherNo: payload.voucherNo,
         partyId: partyExists.id,
-        paymentType: payload.paymentType,
         voucherType: VoucherType.SALES,
       };
     }
@@ -358,7 +357,6 @@ const createPaymentVoucher = async (payload: any) => {
     const transactionInfoData = {
       date: payload?.date,
       voucherNo: payload.voucherNo,
-      partyType: partyExists.partyType || null,
       partyId: partyExists.id || null,
       voucherType: VoucherType.PAYMENT,
     };
@@ -455,7 +453,6 @@ const createReceiptVoucher = async (payload: any) => {
     const transactionInfoData = {
       date: payload?.date,
       voucherNo: payload.voucherNo,
-      partyType: partyExists.partyType,
       partyId: partyExists.id,
       voucherType: VoucherType.RECEIPT,
     };
@@ -484,7 +481,6 @@ const createReceiptVoucher = async (payload: any) => {
         });
       }
     });
-    console.log(BankTXData);
 
     if (BankTXData.length > 0) {
       await tx.bankTransaction.createMany({
@@ -538,8 +534,56 @@ const createReceiptVoucher = async (payload: any) => {
   return createVoucher;
 };
 
-const createJournalVoucher = async () => {
-  console.log("first");
+const createJournalVoucher = async (payload: any) => {
+  const createJournal = await prisma.$transaction(async (tx) => {
+    let partyExists;
+    //check party
+    if (payload.party) {
+      partyExists = await tx.party.findFirst({
+        where: { id: payload.partyId },
+      });
+    }
+
+    const createTransactionInfo: TransactionInfo =
+      await tx.transactionInfo.create({
+        data: {
+          date: payload?.date,
+          voucherNo: payload.voucherNo,
+          partyId: partyExists?.id || null,
+          voucherType: VoucherType.JOURNAL,
+        },
+      });
+
+    await tx.journal.createMany({
+      data: [
+        {
+          transectionId: createTransactionInfo.id,
+          accountsItemId: payload.creditItem,
+          creditAmount: payload.amount,
+          narration: payload?.narration || "",
+          date: new Date(payload.date),
+        },
+        {
+          transectionId: createTransactionInfo.id,
+          accountsItemId: payload.debitItem,
+          creditAmount: payload.amount,
+          narration: payload?.narration || "",
+          date: new Date(payload.date),
+        },
+      ],
+    });
+
+    return createTransactionInfo;
+  });
+  console.log(createJournal);
+
+  const result = await prisma.transactionInfo.findFirst({
+    where: {
+      id: createJournal,
+    },
+  });
+
+  return result;
 };
 
 const createQantaVoucher = async () => {

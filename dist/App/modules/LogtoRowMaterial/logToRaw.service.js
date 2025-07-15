@@ -82,7 +82,6 @@ const createLogToRowIntoDB = (payLoad) => __awaiter(void 0, void 0, void 0, func
         }
         return createLogToRaw;
     }));
-    console.log(createLogOrdrByCategory);
     return yield prisma_1.default.logToRaw.findFirst({
         where: {
             id: createLogOrdrByCategory.id,
@@ -94,31 +93,35 @@ const createLogToRowIntoDB = (payLoad) => __awaiter(void 0, void 0, void 0, func
         },
     });
 });
-const getAllLogCategory = () => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield prisma_1.default.logCategory.findMany();
+const getAllLogToRaw = () => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield prisma_1.default.logToRaw.findMany({
+        include: {
+            inventory: true,
+            logOrdByCategory: true,
+        },
+    });
     return result;
 });
-const getLogCategoryById = (id) => __awaiter(void 0, void 0, void 0, function* () {
-    const result = yield prisma_1.default.logCategory.findMany({
+const getLogToRawById = (id) => __awaiter(void 0, void 0, void 0, function* () {
+    const result = yield prisma_1.default.logCategory.findFirst({
         where: {
             id,
         },
     });
     return result;
 });
-const updateLogCategoryById = (id, payLoad) => __awaiter(void 0, void 0, void 0, function* () {
-    console.log(payLoad);
-    const result = yield prisma_1.default.logCategory.update({
-        where: {
-            id,
-        },
-        data: payLoad,
-    });
-    return result;
-});
+// const updateLogCategoryById = async (id: number, payLoad: LogCategory) => {
+//   console.log(payLoad);
+//   const result = await prisma.logCategory.update({
+//     where: {
+//       id,
+//     },
+//     data: payLoad,
+//   });
+//   return result;
+// };
 exports.LogToRawService = {
     createLogToRowIntoDB,
-    getAllLogCategory,
-    getLogCategoryById,
-    updateLogCategoryById,
+    getAllLogToRaw,
+    getLogToRawById,
 };

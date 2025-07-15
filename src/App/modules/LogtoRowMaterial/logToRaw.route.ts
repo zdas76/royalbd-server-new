@@ -9,6 +9,4 @@ router.get("/", LogtoRawControllers.getLogCagetory);
 
 router.get("/:id", LogtoRawControllers.getLogCagetoryById);
 
-router.put("/:id", LogtoRawControllers.updateLogCagetoryById);
-
 export const LogtoRawRoute = router;

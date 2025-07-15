@@ -10,5 +10,4 @@ const router = express_1.default.Router();
 router.post("/", logToRaw_controllers_1.LogtoRawControllers.createLogToRow);
 router.get("/", logToRaw_controllers_1.LogtoRawControllers.getLogCagetory);
 router.get("/:id", logToRaw_controllers_1.LogtoRawControllers.getLogCagetoryById);
-router.put("/:id", logToRaw_controllers_1.LogtoRawControllers.updateLogCagetoryById);
 exports.LogtoRawRoute = router;
